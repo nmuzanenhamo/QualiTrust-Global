@@ -1,178 +1,43 @@
 """
-Generate the Technical Report as a .docx file with MSU cover page.
+Generate the Technical Report as a .docx file, reusing the exact MSU
+cover page template (logo, table borders, merged cells preserved).
 Formatting: Times New Roman, 12pt, 1.5 line spacing, black font.
 No em dashes. APA referencing. Tables labelled at top, figures at bottom.
 """
 
-from docx import Document
-from docx.shared import Pt, Inches, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT
-from copy import deepcopy
+import sys
+import os
 
-COVER_PAGE_PATH = r"C:\Users\NgonidzasheMuzanenha\OneDrive\Masters Information Systems\Semester 1.2\Cover Page.docx"
+from docx.shared import Inches
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from report_utils import (
+    build_cover_page_document,
+    set_document_defaults,
+    add_heading,
+    add_paragraph,
+    add_table,
+    add_figure_label,
+    finalize_document_fonts,
+    FONT_NAME,
+    FONT_SIZE,
+    BLACK,
+)
+
 OUTPUT_PATH = r"C:\Users\NgonidzasheMuzanenha\OneDrive\Masters Information Systems\Semester 1.2\MIM736 - Software Engineering\Technical Report - QVS.docx"
-
-
-def set_font_for_document(doc):
-    """Set Times New Roman 12pt for all paragraphs in the document."""
-    for paragraph in doc.paragraphs:
-        for run in paragraph.runs:
-            run.font.name = "Times New Roman"
-            run.font.size = Pt(12)
-            run.font.color.rgb = RGBColor(0, 0, 0)
-    for table in doc.tables:
-        for row in table.rows:
-            for cell in row.cells:
-                for paragraph in cell.paragraphs:
-                    for run in paragraph.runs:
-                        run.font.name = "Times New Roman"
-                        run.font.size = Pt(12)
-                        run.font.color.rgb = RGBColor(0, 0, 0)
-
-
-def set_line_spacing(doc):
-    """Set 1.5 line spacing for all paragraphs."""
-    for paragraph in doc.paragraphs:
-        paragraph_format = paragraph.paragraph_format
-        paragraph_format.line_spacing = 1.5
-    for table in doc.tables:
-        for row in table.rows:
-            for cell in row.cells:
-                for paragraph in cell.paragraphs:
-                    paragraph.paragraph_format.line_spacing = 1.5
-
-
-def add_cover_page(doc):
-    """Add the MSU cover page by copying from the template and updating fields."""
-    cover_doc = Document(COVER_PAGE_PATH)
-
-    # Copy all paragraphs from cover page
-    for paragraph in cover_doc.paragraphs:
-        new_para = doc.add_paragraph()
-        new_para.alignment = paragraph.alignment
-        for run in paragraph.runs:
-            new_run = new_para.add_run(run.text)
-            new_run.font.name = run.font.name or "Times New Roman"
-            new_run.font.size = run.font.size or Pt(12)
-            new_run.font.bold = run.font.bold
-            new_run.font.color.rgb = RGBColor(0, 0, 0)
-
-    # Copy tables from cover page and update fields
-    for table in cover_doc.tables:
-        new_table = doc.add_table(rows=len(table.rows), cols=len(table.columns))
-        new_table.style = table.style
-        for i, row in enumerate(table.rows):
-            for j, cell in enumerate(row.cells):
-                cell_text = cell.text
-                # Update module code and name
-                if "MIM737" in cell_text:
-                    cell_text = cell_text.replace("MIM737", "MIM736")
-                if "Software Engineering" in cell_text and "MIM737" in cell.text:
-                    pass  # Already correct
-                # Update lecturer
-                if row.cells[0].text.strip() == "Lecturer:":
-                    cell_text = "Dr Zhou"
-                new_cell = new_table.rows[i].cells[j]
-                new_cell.text = cell_text
-                for paragraph in new_cell.paragraphs:
-                    for run in paragraph.runs:
-                        run.font.name = "Times New Roman"
-                        run.font.size = Pt(12)
-                        run.font.color.rgb = RGBColor(0, 0, 0)
-
-    # Add page break after cover page
-    doc.add_page_break()
-
-
-def add_heading(doc, text, level=1):
-    """Add a heading with proper formatting."""
-    heading = doc.add_heading(text, level=level)
-    for run in heading.runs:
-        run.font.name = "Times New Roman"
-        run.font.size = Pt(14 if level == 1 else 12)
-        run.font.color.rgb = RGBColor(0, 0, 0)
-    return heading
-
-
-def add_paragraph(doc, text):
-    """Add a paragraph with proper formatting."""
-    para = doc.add_paragraph(text)
-    para.paragraph_format.line_spacing = 1.5
-    for run in para.runs:
-        run.font.name = "Times New Roman"
-        run.font.size = Pt(12)
-        run.font.color.rgb = RGBColor(0, 0, 0)
-    return para
-
-
-def add_table(doc, label, headers, rows):
-    """Add a table with label at the top."""
-    # Table label at top
-    label_para = doc.add_paragraph(label)
-    label_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    for run in label_para.runs:
-        run.font.name = "Times New Roman"
-        run.font.size = Pt(12)
-        run.font.bold = True
-        run.font.color.rgb = RGBColor(0, 0, 0)
-
-    # Create table
-    table = doc.add_table(rows=1 + len(rows), cols=len(headers))
-    table.style = "Table Grid"
-    table.alignment = WD_TABLE_ALIGNMENT.CENTER
-
-    # Header row
-    for j, header in enumerate(headers):
-        cell = table.rows[0].cells[j]
-        cell.text = header
-        for paragraph in cell.paragraphs:
-            for run in paragraph.runs:
-                run.font.name = "Times New Roman"
-                run.font.size = Pt(12)
-                run.font.bold = True
-                run.font.color.rgb = RGBColor(0, 0, 0)
-
-    # Data rows
-    for i, row in enumerate(rows):
-        for j, value in enumerate(row):
-            cell = table.rows[i + 1].cells[j]
-            cell.text = str(value)
-            for paragraph in cell.paragraphs:
-                for run in paragraph.runs:
-                    run.font.name = "Times New Roman"
-                    run.font.size = Pt(12)
-                    run.font.color.rgb = RGBColor(0, 0, 0)
-
-    # Spacing after table
-    doc.add_paragraph()
-    return table
-
-
-def add_figure_label(doc, label):
-    """Add a figure label at the bottom (after figure content)."""
-    label_para = doc.add_paragraph(label)
-    label_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    for run in label_para.runs:
-        run.font.name = "Times New Roman"
-        run.font.size = Pt(12)
-        run.font.bold = True
-        run.font.color.rgb = RGBColor(0, 0, 0)
 
 
 def generate_report():
     """Generate the full technical report."""
-    doc = Document()
-
-    # Set default font
-    style = doc.styles["Normal"]
-    style.font.name = "Times New Roman"
-    style.font.size = Pt(12)
-    style.font.color.rgb = RGBColor(0, 0, 0)
-    style.paragraph_format.line_spacing = 1.5
-
-    # Add cover page
-    add_cover_page(doc)
+    doc = build_cover_page_document(
+        student_name="Ngonidzashe Muzanenhamo, Loreen Venge, Judah T Chisare, Nyasha A Madziwanzira",
+        reg_number="R211790N, R2118621M, R267853N, R2117220T",
+        question_text=(
+            "Assignment 2: DevOps-Enabled Qualification Verification System "
+            "- Technical Report"
+        ),
+    )
+    set_document_defaults(doc)
 
     # Table of Contents placeholder
     add_heading(doc, "Table of Contents", level=1)
@@ -190,12 +55,7 @@ def generate_report():
         "References",
     ]
     for item in toc_items:
-        para = doc.add_paragraph(item)
-        para.paragraph_format.line_spacing = 1.5
-        for run in para.runs:
-            run.font.name = "Times New Roman"
-            run.font.size = Pt(12)
-            run.font.color.rgb = RGBColor(0, 0, 0)
+        add_paragraph(doc, item)
     doc.add_page_break()
 
     # 1. Introduction
@@ -431,18 +291,12 @@ def generate_report():
         "Zheng, Z., Xie, S., & Dai, H. (2023). Lightweight blockchain solutions for centralized systems: A comparative study. Future Generation Computer Systems, 141, 298-312. https://doi.org/10.1016/j.fgcs.2022.11.015",
     ]
     for ref in references:
-        para = doc.add_paragraph(ref)
-        para.paragraph_format.line_spacing = 1.5
+        para = add_paragraph(doc, ref)
         para.paragraph_format.left_indent = Inches(0.5)
         para.paragraph_format.first_line_indent = Inches(-0.5)
-        for run in para.runs:
-            run.font.name = "Times New Roman"
-            run.font.size = Pt(12)
-            run.font.color.rgb = RGBColor(0, 0, 0)
 
-    # Apply formatting to entire document
-    set_font_for_document(doc)
-    set_line_spacing(doc)
+    # Apply formatting to entire document (skips cover page which is already correct)
+    finalize_document_fonts(doc)
 
     # Save
     doc.save(OUTPUT_PATH)

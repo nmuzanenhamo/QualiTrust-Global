@@ -1,17 +1,26 @@
 """
 Generate Individual Contribution Reports for each team member.
-Parses git log per author and creates a .docx report with MSU cover page.
+Parses git log per author and creates a .docx report that reuses the
+exact MSU cover page template (logo, table borders, merged cells).
 Formatting: Times New Roman, 12pt, 1.5 line spacing, black font.
 """
 
 import subprocess
 import os
-from docx import Document
-from docx.shared import Pt, Inches, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT
+import sys
 
-COVER_PAGE_PATH = r"C:\Users\NgonidzasheMuzanenha\OneDrive\Masters Information Systems\Semester 1.2\Cover Page.docx"
+from docx.shared import Inches
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from report_utils import (
+    build_cover_page_document,
+    set_document_defaults,
+    add_heading,
+    add_paragraph,
+    add_table,
+    finalize_document_fonts,
+)
+
 OUTPUT_DIR = r"C:\Users\NgonidzasheMuzanenha\OneDrive\Masters Information Systems\Semester 1.2\MIM736 - Software Engineering"
 
 TEAM_MEMBERS = [
@@ -106,149 +115,14 @@ def get_branches_for_author(repo_path, email):
     return sorted(branches)
 
 
-def set_font_for_document(doc):
-    """Set Times New Roman 12pt for all content."""
-    for paragraph in doc.paragraphs:
-        for run in paragraph.runs:
-            run.font.name = "Times New Roman"
-            run.font.size = Pt(12)
-            run.font.color.rgb = RGBColor(0, 0, 0)
-    for table in doc.tables:
-        for row in table.rows:
-            for cell in row.cells:
-                for paragraph in cell.paragraphs:
-                    for run in paragraph.runs:
-                        run.font.name = "Times New Roman"
-                        run.font.size = Pt(12)
-                        run.font.color.rgb = RGBColor(0, 0, 0)
-
-
-def set_line_spacing(doc):
-    """Set 1.5 line spacing for all paragraphs."""
-    for paragraph in doc.paragraphs:
-        paragraph.paragraph_format.line_spacing = 1.5
-    for table in doc.tables:
-        for row in table.rows:
-            for cell in row.cells:
-                for paragraph in cell.paragraphs:
-                    paragraph.paragraph_format.line_spacing = 1.5
-
-
-def add_cover_page(doc, member):
-    """Add the MSU cover page with member details."""
-    cover_doc = Document(COVER_PAGE_PATH)
-
-    for paragraph in cover_doc.paragraphs:
-        new_para = doc.add_paragraph()
-        new_para.alignment = paragraph.alignment
-        for run in paragraph.runs:
-            new_run = new_para.add_run(run.text)
-            new_run.font.name = run.font.name or "Times New Roman"
-            new_run.font.size = run.font.size or Pt(12)
-            new_run.font.bold = run.font.bold
-            new_run.font.color.rgb = RGBColor(0, 0, 0)
-
-    for table in cover_doc.tables:
-        new_table = doc.add_table(rows=len(table.rows), cols=len(table.columns))
-        new_table.style = table.style
-        for i, row in enumerate(table.rows):
-            for j, cell in enumerate(row.cells):
-                cell_text = cell.text
-                if "MIM737" in cell_text:
-                    cell_text = cell_text.replace("MIM737", "MIM736")
-                if row.cells[0].text.strip() == "Student Name:":
-                    cell_text = member["name"]
-                if row.cells[0].text.strip() == "Registration Number:":
-                    cell_text = member["reg_number"]
-                if row.cells[0].text.strip() == "Module Code:":
-                    cell_text = "MIM736"
-                if row.cells[0].text.strip() == "Module Name:":
-                    cell_text = "Software Engineering"
-                if row.cells[0].text.strip() == "Lecturer:":
-                    cell_text = "Dr Zhou"
-                if row.cells[0].text.strip() == "QUESTION:":
-                    cell_text = "Individual Contribution Report"
-                new_cell = new_table.rows[i].cells[j]
-                new_cell.text = cell_text
-                for paragraph in new_cell.paragraphs:
-                    for run in paragraph.runs:
-                        run.font.name = "Times New Roman"
-                        run.font.size = Pt(12)
-                        run.font.color.rgb = RGBColor(0, 0, 0)
-
-    doc.add_page_break()
-
-
-def add_heading(doc, text, level=1):
-    """Add a heading with proper formatting."""
-    heading = doc.add_heading(text, level=level)
-    for run in heading.runs:
-        run.font.name = "Times New Roman"
-        run.font.size = Pt(14 if level == 1 else 12)
-        run.font.color.rgb = RGBColor(0, 0, 0)
-    return heading
-
-
-def add_paragraph(doc, text):
-    """Add a paragraph with proper formatting."""
-    para = doc.add_paragraph(text)
-    para.paragraph_format.line_spacing = 1.5
-    for run in para.runs:
-        run.font.name = "Times New Roman"
-        run.font.size = Pt(12)
-        run.font.color.rgb = RGBColor(0, 0, 0)
-    return para
-
-
-def add_table(doc, label, headers, rows):
-    """Add a table with label at the top."""
-    label_para = doc.add_paragraph(label)
-    label_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    for run in label_para.runs:
-        run.font.name = "Times New Roman"
-        run.font.size = Pt(12)
-        run.font.bold = True
-        run.font.color.rgb = RGBColor(0, 0, 0)
-
-    table = doc.add_table(rows=1 + len(rows), cols=len(headers))
-    table.style = "Table Grid"
-    table.alignment = WD_TABLE_ALIGNMENT.CENTER
-
-    for j, header in enumerate(headers):
-        cell = table.rows[0].cells[j]
-        cell.text = header
-        for paragraph in cell.paragraphs:
-            for run in paragraph.runs:
-                run.font.name = "Times New Roman"
-                run.font.size = Pt(12)
-                run.font.bold = True
-                run.font.color.rgb = RGBColor(0, 0, 0)
-
-    for i, row in enumerate(rows):
-        for j, value in enumerate(row):
-            cell = table.rows[i + 1].cells[j]
-            cell.text = str(value)
-            for paragraph in cell.paragraphs:
-                for run in paragraph.runs:
-                    run.font.name = "Times New Roman"
-                    run.font.size = Pt(12)
-                    run.font.color.rgb = RGBColor(0, 0, 0)
-
-    doc.add_paragraph()
-    return table
-
-
 def generate_contribution_report(repo_path, member):
     """Generate an individual contribution report for a team member."""
-    doc = Document()
-
-    style = doc.styles["Normal"]
-    style.font.name = "Times New Roman"
-    style.font.size = Pt(12)
-    style.font.color.rgb = RGBColor(0, 0, 0)
-    style.paragraph_format.line_spacing = 1.5
-
-    add_cover_page(doc, member)
+    doc = build_cover_page_document(
+        student_name=member["name"],
+        reg_number=member["reg_number"],
+        question_text="Assignment 2: Individual Contribution Report",
+    )
+    set_document_defaults(doc)
 
     # 1. Member Information
     add_heading(doc, "1. Member Information", level=1)
@@ -290,12 +164,7 @@ def generate_contribution_report(repo_path, member):
         "The following branches were created or contributed to during the development process:"
     )
     for branch in branches:
-        para = doc.add_paragraph(f"- {branch}")
-        para.paragraph_format.line_spacing = 1.5
-        for run in para.runs:
-            run.font.name = "Times New Roman"
-            run.font.size = Pt(12)
-            run.font.color.rgb = RGBColor(0, 0, 0)
+        add_paragraph(doc, f"- {branch}")
 
     # 4. Commit History
     add_heading(doc, "4. Commit History", level=1)
@@ -386,9 +255,8 @@ def generate_contribution_report(repo_path, member):
         "deployment that will be valuable in future software engineering projects."
     )
 
-    # Apply formatting
-    set_font_for_document(doc)
-    set_line_spacing(doc)
+    # Apply formatting (skips cover page which is already correct)
+    finalize_document_fonts(doc)
 
     # Save
     safe_name = member["name"].replace(" ", "_")
