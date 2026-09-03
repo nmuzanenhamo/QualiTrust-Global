@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from datetime import datetime
 
 from app.models import Qualification, QualificationStatus, QualificationType
 from app.services.blockchain_service import BlockchainService
@@ -19,7 +20,7 @@ class TestBlockchainService:
             holder_name="Test Holder",
             holder_email="holder@test.com",
             holder_id_number="ID123",
-            date_issued="2020-01-01T00:00:00",
+            date_issued=datetime(2020, 1, 1),
             registration_number="REG001",
             serial_number="SN001",
             status=QualificationStatus.PENDING,
@@ -40,7 +41,7 @@ class TestBlockchainService:
             qualification_type=QualificationType.DEGREE,
             issuing_institution="Test University",
             holder_name="Test Holder 2",
-            date_issued="2020-01-01T00:00:00",
+            date_issued=datetime(2020, 1, 1),
             registration_number="REG002",
             serial_number="SN002",
             status=QualificationStatus.PENDING,
@@ -62,7 +63,7 @@ class TestBlockchainService:
             qualification_type=QualificationType.DEGREE,
             issuing_institution="Valid University",
             holder_name="Valid Holder",
-            date_issued="2020-01-01T00:00:00",
+            date_issued=datetime(2020, 1, 1),
             registration_number="REG003",
             serial_number="SN003",
             status=QualificationStatus.VERIFIED,
@@ -83,7 +84,7 @@ class TestBlockchainService:
             qualification_type=QualificationType.DEGREE,
             issuing_institution="Test University",
             holder_name="Tampered Holder",
-            date_issued="2020-01-01T00:00:00",
+            date_issued=datetime(2020, 1, 1),
             registration_number="REG004",
             serial_number="SN004",
             status=QualificationStatus.VERIFIED,
@@ -107,7 +108,7 @@ class TestBlockchainService:
             qualification_type=QualificationType.DEGREE,
             issuing_institution="Verify University",
             holder_name="Verify Holder",
-            date_issued="2020-01-01T00:00:00",
+            date_issued=datetime(2020, 1, 1),
             registration_number="REG005",
             serial_number="SN005",
             status=QualificationStatus.PENDING,
