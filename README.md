@@ -92,20 +92,82 @@ docker-compose up --build
 
 ## API Endpoints
 
+### Authentication
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | /api/v1/auth/register | Register a new user | No |
+| POST | /api/v1/auth/login | Login and get JWT token | No |
+| POST | /api/v1/auth/refresh | Refresh access token | No (refresh token) |
+| GET | /api/v1/auth/me | Get current user info | Yes |
+
+### Qualifications
+
+| Method | Endpoint | Description | Role |
+|--------|----------|-------------|------|
+| GET | /api/v1/qualifications/ | Search qualifications | Any authenticated |
+| POST | /api/v1/qualifications/ | Register a qualification | Verifier/Admin |
+| GET | /api/v1/qualifications/{id} | Get a specific qualification | Any authenticated |
+| PUT | /api/v1/qualifications/{id} | Update a qualification | Verifier/Admin |
+| DELETE | /api/v1/qualifications/{id} | Soft delete a qualification | Verifier/Admin |
+
+### Verification
+
+| Method | Endpoint | Description | Role |
+|--------|----------|-------------|------|
+| POST | /api/v1/qualifications/{id}/verify | Verify a qualification | Verifier/Admin |
+| GET | /api/v1/qualifications/{id}/verifications | Get verification history | Verifier/Admin |
+
+### AI Analysis
+
+| Method | Endpoint | Description | Role |
+|--------|----------|-------------|------|
+| POST | /api/v1/ai/analyze/{id} | AI credential analysis | Verifier/Admin |
+
+### Audit Logs
+
+| Method | Endpoint | Description | Role |
+|--------|----------|-------------|------|
+| GET | /api/v1/audit-logs/ | Search audit logs | Any authenticated |
+| GET | /api/v1/audit-logs/{id} | Get specific audit log | Any authenticated |
+
+### System
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | /api/v1/auth/register | Register a new user |
-| POST | /api/v1/auth/login | Login and get JWT token |
-| GET | /api/v1/qualifications | List/search qualifications |
-| POST | /api/v1/qualifications | Register a qualification |
-| GET | /api/v1/qualifications/{id} | Get a specific qualification |
-| PUT | /api/v1/qualifications/{id} | Update a qualification |
-| DELETE | /api/v1/qualifications/{id} | Soft delete a qualification |
-| POST | /api/v1/qualifications/{id}/verify | Verify a qualification |
-| GET | /api/v1/audit-logs | Query audit history |
-| GET | /api/v1/ai/analyze | AI-powered credential analysis |
-| GET | /metrics | Prometheus metrics |
-| GET | /health | Health check |
+| GET | /metrics | Prometheus metrics endpoint |
+| GET | /health | Health check endpoint |
+| GET | /docs | Swagger UI (interactive API docs) |
+
+## User Roles
+
+| Role | Permissions |
+|------|------------|
+| Admin | Full access to all endpoints |
+| Verifier | Register, update, delete, and verify qualifications |
+| Viewer | Read-only access to qualifications and audit logs |
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| DATABASE_URL | sqlite:///./qualification_verification.db | Database connection string |
+| SECRET_KEY | dev-secret-key-change-in-production | JWT signing key |
+| ALGORITHM | HS256 | JWT algorithm |
+| ACCESS_TOKEN_EXPIRE_MINUTES | 30 | Access token expiry |
+| REFRESH_TOKEN_EXPIRE_MINUTES | 1440 | Refresh token expiry |
+| RATE_LIMIT_PER_MINUTE | 60 | Rate limit threshold |
+| OPENAI_API_KEY | (empty) | OpenAI API key for AI features |
+| DEBUG | True | Debug mode flag |
+
+## Docker Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| app | 8000 | FastAPI application |
+| db | 5432 | PostgreSQL database |
+| prometheus | 9090 | Metrics collection |
+| grafana | 3000 | Monitoring dashboard (admin/admin) |
 
 ## Team
 
