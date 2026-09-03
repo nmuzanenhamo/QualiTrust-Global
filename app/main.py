@@ -50,10 +50,7 @@ async def health_check():
     }
 
 
-# Routers will be included as they are implemented
-# from app.api.routers import auth, qualifications, verification, audit, ai, monitoring
-# app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
-# app.include_router(qualifications.router, prefix="/api/v1/qualifications", tags=["qualifications"])
-# app.include_router(verification.router, prefix="/api/v1/qualifications", tags=["verification"])
-# app.include_router(audit.router, prefix="/api/v1/audit-logs", tags=["audit"])
-# app.include_router(ai.router, prefix="/api/v1/ai", tags=["ai"])
+# Routers
+from app.api.routers import auth
+
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
