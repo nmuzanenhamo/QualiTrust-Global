@@ -1,0 +1,29 @@
+# Render deployment configuration
+services:
+  - type: web
+    name: qualification-verification-system
+    runtime: python
+    buildCommand: pip install -e ".[dev]"
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 4
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: qvs-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      - key: REFRESH_TOKEN_EXPIRE_MINUTES
+        value: 1440
+      - key: DEBUG
+        value: false
+      - key: OPENAI_API_KEY
+        sync: false
+
+databases:
+  - name: qvs-db
+    databaseName: qvs
+    plan: free
