@@ -8,6 +8,7 @@ from prometheus_client import make_asgi_app
 
 from app.core.config import settings
 from app.core.database import Base, engine
+from app.core.middleware import MetricsMiddleware
 
 
 @asynccontextmanager
@@ -26,6 +27,8 @@ app = FastAPI(
     ),
     lifespan=lifespan,
 )
+
+app.add_middleware(MetricsMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
