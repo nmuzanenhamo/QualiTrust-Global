@@ -1,0 +1,82 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: qvs-app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://qvs:qvs_password@db:5432/qvs
+      - SECRET_KEY=${SECRET_KEY:-production-secret-key-change-me}
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REFRESH_TOKEN_EXPIRE_MINUTES=1440
+      - RATE_LIMIT_PER_MINUTE=60
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - DEBUG=False
+      - CORS_ORIGINS=["http://localhost:3000","http://localhost:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - qvs-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: qvs-db
+    environment:
+      - POSTGRES_USER=qvs
+      - POSTGRES_PASSWORD=qvs_password
+      - POSTGRES_DB=qvs
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qvs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - qvs-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: qvs-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    restart: unless-stopped
+    networks:
+      - qvs-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: qvs-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deploy/grafana/dashboard.json:/etc/grafana/provisioning/dashboards/dashboard.json
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - qvs-network
+
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  qvs-network:
+    driver: bridge
