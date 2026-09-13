@@ -25,6 +25,7 @@ class QualificationBase(BaseModel):
 
 class QualificationCreate(QualificationBase):
     """Schema for creating a qualification."""
+
     pass
 
 

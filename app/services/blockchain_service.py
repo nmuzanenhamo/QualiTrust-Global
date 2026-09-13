@@ -7,11 +7,11 @@ hash, creating a tamper-evident ledger of records.
 
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
-from app.models import Qualification, VerificationRecord
+from app.models import Qualification
 
 
 class BlockchainService:
@@ -74,11 +74,7 @@ class BlockchainService:
             return False
 
         if qualification.id > 1:
-            prev_qual = (
-                db.query(Qualification)
-                .filter(Qualification.id == qualification.id - 1)
-                .first()
-            )
+            prev_qual = db.query(Qualification).filter(Qualification.id == qualification.id - 1).first()
             if prev_qual and prev_qual.credential_hash != qualification.previous_hash:
                 return False
 
@@ -94,10 +90,7 @@ class BlockchainService:
             "hash_valid": chain_valid,
             "has_serial": qualification.serial_number is not None,
             "has_registration": qualification.registration_number is not None,
-            "not_expired": (
-                qualification.date_expires is None
-                or qualification.date_expires > datetime.now(timezone.utc)
-            ),
+            "not_expired": (qualification.date_expires is None or qualification.date_expires > datetime.now(UTC)),
             "not_revoked": qualification.status.value != "revoked" if qualification.status else False,
         }
 

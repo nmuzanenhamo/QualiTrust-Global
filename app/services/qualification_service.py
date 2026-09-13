@@ -4,7 +4,7 @@ import math
 
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session, Query
+from sqlalchemy.orm import Query, Session
 
 from app.models import Qualification, QualificationStatus, QualificationType, User
 from app.schemas.qualification import (
@@ -60,12 +60,12 @@ class QualificationService:
         db.add(qualification)
         try:
             db.commit()
-        except IntegrityError:
+        except IntegrityError as err:
             db.rollback()
             raise HTTPException(
                 status_code=400,
                 detail=f"A credential with serial number '{qualification_data.serial_number}' already exists.",
-            )
+            ) from err
         db.refresh(qualification)
 
         # Assign blockchain hash for tamper-evident verification
@@ -118,9 +118,7 @@ class QualificationService:
 
         total = q.count()
         total_pages = math.ceil(total / page_size) if total > 0 else 0
-        items = q.order_by(Qualification.created_at.desc()).offset(
-            (page - 1) * page_size
-        ).limit(page_size).all()
+        items = q.order_by(Qualification.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
         return QualificationSearchResult(
             items=items,

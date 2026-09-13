@@ -61,91 +61,111 @@ class DocumentComparisonService:
         holder = (qualification.holder_name or "").strip()
         if holder:
             holder_found = DocumentComparisonService._fuzzy_contains(text_lower, holder.lower())
-            checks.append({
-                "field": "Holder Name",
-                "registered": holder,
-                "found_in_document": holder_found,
-                "weight": 25,
-            })
+            checks.append(
+                {
+                    "field": "Holder Name",
+                    "registered": holder,
+                    "found_in_document": holder_found,
+                    "weight": 25,
+                }
+            )
         else:
-            checks.append({
-                "field": "Holder Name",
-                "registered": "(not set)",
-                "found_in_document": False,
-                "weight": 25,
-            })
+            checks.append(
+                {
+                    "field": "Holder Name",
+                    "registered": "(not set)",
+                    "found_in_document": False,
+                    "weight": 25,
+                }
+            )
 
         # 2. Issuing institution match
         institution = (qualification.issuing_institution or "").strip()
         if institution:
             inst_found = DocumentComparisonService._fuzzy_contains(text_lower, institution.lower())
-            checks.append({
-                "field": "Issuing Institution",
-                "registered": institution,
-                "found_in_document": inst_found,
-                "weight": 25,
-            })
+            checks.append(
+                {
+                    "field": "Issuing Institution",
+                    "registered": institution,
+                    "found_in_document": inst_found,
+                    "weight": 25,
+                }
+            )
         else:
-            checks.append({
-                "field": "Issuing Institution",
-                "registered": "(not set)",
-                "found_in_document": False,
-                "weight": 25,
-            })
+            checks.append(
+                {
+                    "field": "Issuing Institution",
+                    "registered": "(not set)",
+                    "found_in_document": False,
+                    "weight": 25,
+                }
+            )
 
         # 3. Qualification title match
         title = (qualification.title or "").strip()
         if title:
             title_found = DocumentComparisonService._fuzzy_contains(text_lower, title.lower())
-            checks.append({
-                "field": "Qualification Title",
-                "registered": title,
-                "found_in_document": title_found,
-                "weight": 20,
-            })
+            checks.append(
+                {
+                    "field": "Qualification Title",
+                    "registered": title,
+                    "found_in_document": title_found,
+                    "weight": 20,
+                }
+            )
         else:
-            checks.append({
-                "field": "Qualification Title",
-                "registered": "(not set)",
-                "found_in_document": False,
-                "weight": 20,
-            })
+            checks.append(
+                {
+                    "field": "Qualification Title",
+                    "registered": "(not set)",
+                    "found_in_document": False,
+                    "weight": 20,
+                }
+            )
 
         # 4. Serial number match
         serial = (qualification.serial_number or "").strip()
         if serial:
             serial_found = serial.lower() in text_lower
-            checks.append({
-                "field": "Serial Number",
-                "registered": serial,
-                "found_in_document": serial_found,
-                "weight": 15,
-            })
+            checks.append(
+                {
+                    "field": "Serial Number",
+                    "registered": serial,
+                    "found_in_document": serial_found,
+                    "weight": 15,
+                }
+            )
         else:
-            checks.append({
-                "field": "Serial Number",
-                "registered": "(not set)",
-                "found_in_document": False,
-                "weight": 15,
-            })
+            checks.append(
+                {
+                    "field": "Serial Number",
+                    "registered": "(not set)",
+                    "found_in_document": False,
+                    "weight": 15,
+                }
+            )
 
         # 5. Registration number match
         reg = (qualification.registration_number or "").strip()
         if reg:
             reg_found = reg.lower() in text_lower
-            checks.append({
-                "field": "Registration Number",
-                "registered": reg,
-                "found_in_document": reg_found,
-                "weight": 15,
-            })
+            checks.append(
+                {
+                    "field": "Registration Number",
+                    "registered": reg,
+                    "found_in_document": reg_found,
+                    "weight": 15,
+                }
+            )
         else:
-            checks.append({
-                "field": "Registration Number",
-                "registered": "(not set)",
-                "found_in_document": False,
-                "weight": 15,
-            })
+            checks.append(
+                {
+                    "field": "Registration Number",
+                    "registered": "(not set)",
+                    "found_in_document": False,
+                    "weight": 15,
+                }
+            )
 
         # Calculate weighted score
         total_weight = sum(c["weight"] for c in checks)
@@ -224,7 +244,9 @@ class DocumentComparisonService:
             summary = f"Documents are highly similar ({similarity:.0f}% token overlap). Likely the same document."
         elif similarity >= 50:
             recommendation = "REVIEW"
-            summary = f"Documents show moderate similarity ({similarity:.0f}% token overlap). Manual comparison recommended."
+            summary = (
+                f"Documents show moderate similarity ({similarity:.0f}% token overlap). Manual comparison recommended."
+            )
         else:
             recommendation = "REJECT"
             summary = f"Documents are significantly different ({similarity:.0f}% token overlap). The uploaded document may not match the registered certificate."

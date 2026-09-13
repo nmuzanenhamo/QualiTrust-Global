@@ -1,8 +1,5 @@
 """Monitoring service with Prometheus metrics for system observability."""
 
-import time
-from functools import wraps
-
 from prometheus_client import Counter, Gauge, Histogram, Info
 
 # Application info

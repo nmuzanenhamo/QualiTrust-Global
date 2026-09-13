@@ -131,10 +131,25 @@ GRADE_PATTERNS = [
 # ── Qualification type patterns ─────────────────────────────────
 TYPE_PATTERNS = [
     (re.compile(r"\b(doctor\s*of\s*philosophy|ph\.?d)\b", re.I), "doctorate"),
-    (re.compile(r"\b(master\s*of\s*(?:science|arts|business|engineering|education)|m\.?sc|m\.?a\b|m\.?ba|m\.?eng|m\.?ed)\b", re.I), "masters_degree"),
+    (
+        re.compile(
+            r"\b(master\s*of\s*(?:science|arts|business|engineering|education)|m\.?sc|m\.?a\b|m\.?ba|m\.?eng|m\.?ed)\b",
+            re.I,
+        ),
+        "masters_degree",
+    ),
     (re.compile(r"\b(post\s*graduate\s*diploma|postgraduate\s*diploma|pg\s*dip)\b", re.I), "postgraduate_diploma"),
-    (re.compile(r"\b(post\s*graduate\s*certificate|postgraduate\s*certificate|pg\s*cert)\b", re.I), "postgraduate_certificate"),
-    (re.compile(r"\b(bachelor\s*of\s*(?:science|arts|commerce|business|engineering|education|technology|medicine|surgery)|b\.?sc\b|b\.?a\b|b\.?com\b|b\.?eng\b|b\.?tech\b|b\.?ed\b|mbchb)\b", re.I), "undergraduate_degree"),
+    (
+        re.compile(r"\b(post\s*graduate\s*certificate|postgraduate\s*certificate|pg\s*cert)\b", re.I),
+        "postgraduate_certificate",
+    ),
+    (
+        re.compile(
+            r"\b(bachelor\s*of\s*(?:science|arts|commerce|business|engineering|education|technology|medicine|surgery)|b\.?sc\b|b\.?a\b|b\.?com\b|b\.?eng\b|b\.?tech\b|b\.?ed\b|mbchb)\b",
+            re.I,
+        ),
+        "undergraduate_degree",
+    ),
     (re.compile(r"\b(diploma)\b", re.I), "diploma"),
     (re.compile(r"\b(certificate)\b", re.I), "certificate"),
     (re.compile(r"\b(professional\s*(?:certification|qualification))\b", re.I), "professional_certification"),
@@ -161,7 +176,10 @@ SERIAL_PATTERNS = [
 
 REG_PATTERNS = [
     # "Registration Number: R211790N" — must NOT match "REGISTRAR"
-    re.compile(r"reg(?:istration)?\s*(?:number|no\.?|na\.?|n[°o.]?|#)?\s*[:\-]\s*([A-Z0-9][A-Z0-9\-/]{2,})(?!\s*(?:AR|R\b))", re.I),
+    re.compile(
+        r"reg(?:istration)?\s*(?:number|no\.?|na\.?|n[°o.]?|#)?\s*[:\-]\s*([A-Z0-9][A-Z0-9\-/]{2,})(?!\s*(?:AR|R\b))",
+        re.I,
+    ),
     re.compile(r"student\s*(?:number|no\.?|na\.?|n[°o.]?|id|#)?\s*[:\-]?\s*([A-Z0-9][A-Z0-9\-/]{2,})", re.I),
     re.compile(r"candidate\s*(?:number|no\.?|na\.?|n[°o.]?|#)?\s*[:\-]?\s*([A-Z0-9][A-Z0-9\-/]{2,})", re.I),
 ]
@@ -169,8 +187,14 @@ REG_PATTERNS = [
 # ── Date patterns ───────────────────────────────────────────────
 DATE_PATTERNS = [
     # "15th June 2023", "15 June 2023", "June 15, 2023"
-    re.compile(r"(\d{1,2}(?:st|nd|rd|th)?\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})", re.I),
-    re.compile(r"((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4})", re.I),
+    re.compile(
+        r"(\d{1,2}(?:st|nd|rd|th)?\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})",
+        re.I,
+    ),
+    re.compile(
+        r"((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4})",
+        re.I,
+    ),
     # "2023-06-15", "15/06/2023", "15-06-2023"
     re.compile(r"(\d{4}-\d{2}-\d{2})"),
     re.compile(r"(\d{1,2}[/-]\d{1,2}[/-]\d{4})"),
@@ -179,9 +203,15 @@ DATE_PATTERNS = [
 # ── Holder name patterns ────────────────────────────────────────
 HOLDER_PATTERNS = [
     # "This is to certify that John Doe having..."
-    re.compile(r"this\s+is\s+to\s+certify\s+that\s+(.{2,80}?)(?:\s+(?:having|was|has|is|being|successfully|completed|awarded))", re.I),
+    re.compile(
+        r"this\s+is\s+to\s+certify\s+that\s+(.{2,80}?)(?:\s+(?:having|was|has|is|being|successfully|completed|awarded))",
+        re.I,
+    ),
     # "We hereby Certify that John Doe having..." (common on Zimbabwean certificates)
-    re.compile(r"we\s+hereby\s+certify\s+that\s+(.{2,80}?)(?:\s+(?:having|was|has|is|being|successfully|completed|awarded))", re.I),
+    re.compile(
+        r"we\s+hereby\s+certify\s+that\s+(.{2,80}?)(?:\s+(?:having|was|has|is|being|successfully|completed|awarded))",
+        re.I,
+    ),
     # "We hereby Certify that\n<noise lines>\nJOHN DOE\nhaving..." (name on a later line, all caps)
     # This handles OCR noise between "certify that" and the actual name
     re.compile(
@@ -204,7 +234,9 @@ HOLDER_PATTERNS = [
 
 # ── National ID patterns ────────────────────────────────────────
 ID_PATTERNS = [
-    re.compile(r"(?:national\s*id|id\s*(?:no\.?|number|#)|identity\s*(?:no\.?|number|card))\s*[:\-]?\s*([A-Z0-9]{6,15})", re.I),
+    re.compile(
+        r"(?:national\s*id|id\s*(?:no\.?|number|#)|identity\s*(?:no\.?|number|card))\s*[:\-]?\s*([A-Z0-9]{6,15})", re.I
+    ),
     re.compile(r"\b(\d{2}[-\s]?\d{6,7}[-\s]?[A-Z]\d{2})\b"),  # Zimbabwean national ID format
 ]
 
@@ -319,7 +351,12 @@ class CredentialExtractionService:
                     name = re.sub(r"[,.;:].*$", "", name).strip()
                     name = re.sub(r"\s+", " ", name)
                     # Remove common OCR noise words that get appended
-                    name = re.sub(r"\s+(?:OG|ERTIES|aela|Co|SNA|L|com|NAL|TRUE|RUE|PCT|TCR|ERR|PRR|RRR|Tey|Terr|PER|ERE|RSPR|REET|eee).*$", "", name, flags=re.I)
+                    name = re.sub(
+                        r"\s+(?:OG|ERTIES|aela|Co|SNA|L|com|NAL|TRUE|RUE|PCT|TCR|ERR|PRR|RRR|Tey|Terr|PER|ERE|RSPR|REET|eee).*$",
+                        "",
+                        name,
+                        flags=re.I,
+                    )
                     name = re.sub(r"\s+", " ", name).strip()
                     # Title-case the name (but preserve already-mixed-case)
                     if name.isupper():

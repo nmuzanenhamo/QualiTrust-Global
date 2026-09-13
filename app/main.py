@@ -46,9 +46,9 @@ def _backfill_credential_hashes():
     """Assign blockchain hashes to existing qualifications that lack one."""
     db = SessionLocal()
     try:
-        unhashed = db.query(Qualification).filter(
-            Qualification.credential_hash.is_(None)
-        ).order_by(Qualification.id).all()
+        unhashed = (
+            db.query(Qualification).filter(Qualification.credential_hash.is_(None)).order_by(Qualification.id).all()
+        )
         if unhashed:
             for qual in unhashed:
                 BlockchainService.assign_hash(db, qual)
@@ -62,6 +62,7 @@ def _backfill_credential_hashes():
 def _migrate_add_document_path():
     """Add document_path column to qualifications table if it doesn't exist."""
     from sqlalchemy import text, inspect
+
     try:
         inspector = inspect(engine)
         columns = [c["name"] for c in inspector.get_columns("qualifications")]
@@ -81,12 +82,15 @@ def _migrate_qualification_type_values():
     value (e.g. 'degree'), so we update by name here.
     """
     from sqlalchemy import text
+
     try:
         with engine.connect() as conn:
-            conn.execute(text(
-                "UPDATE qualifications SET qualification_type = 'UNDERGRADUATE_DEGREE' "
-                "WHERE qualification_type = 'DEGREE'"
-            ))
+            conn.execute(
+                text(
+                    "UPDATE qualifications SET qualification_type = 'UNDERGRADUATE_DEGREE' "
+                    "WHERE qualification_type = 'DEGREE'"
+                )
+            )
             conn.commit()
     except Exception:
         pass
@@ -95,12 +99,14 @@ def _migrate_qualification_type_values():
 def _migrate_clear_soft_deleted_serials():
     """Clear serial_number on soft-deleted records to free up the UNIQUE constraint."""
     from sqlalchemy import text
+
     try:
         with engine.connect() as conn:
-            conn.execute(text(
-                "UPDATE qualifications SET serial_number = NULL "
-                "WHERE is_deleted = 1 AND serial_number IS NOT NULL"
-            ))
+            conn.execute(
+                text(
+                    "UPDATE qualifications SET serial_number = NULL WHERE is_deleted = 1 AND serial_number IS NOT NULL"
+                )
+            )
             conn.commit()
     except Exception:
         pass
@@ -109,6 +115,7 @@ def _migrate_clear_soft_deleted_serials():
 def _migrate_add_grade_column():
     """Add grade column to qualifications table if it doesn't exist."""
     from sqlalchemy import text, inspect
+
     try:
         inspector = inspect(engine)
         columns = [c["name"] for c in inspector.get_columns("qualifications")]
@@ -124,11 +131,10 @@ def _migrate_add_grade_column():
 def _migrate_pending_to_registered():
     """Update existing 'pending' qualifications to 'registered' status."""
     from sqlalchemy import text
+
     try:
         with engine.connect() as conn:
-            conn.execute(text(
-                "UPDATE qualifications SET status = 'registered' WHERE status = 'pending'"
-            ))
+            conn.execute(text("UPDATE qualifications SET status = 'registered' WHERE status = 'pending'"))
             conn.commit()
     except Exception:
         pass

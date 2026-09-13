@@ -7,13 +7,18 @@ heuristic analysis engine.
 """
 
 import json
-import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.models import Qualification, User, VerificationMethod, VerificationRecord, VerificationResult
+from app.models import (
+    Qualification,
+    User,
+    VerificationMethod,
+    VerificationRecord,
+    VerificationResult,
+)
 
 
 class AIService:
@@ -34,7 +39,7 @@ class AIService:
             risk_score += 15
 
         if qualification.date_expires:
-            if qualification.date_expires < datetime.now(timezone.utc):
+            if qualification.date_expires < datetime.now(UTC):
                 anomalies.append("Qualification has expired")
                 risk_score += 25
 
@@ -99,7 +104,10 @@ class AIService:
             response = await client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a credential verification expert. Analyze qualifications for fraud."},
+                    {
+                        "role": "system",
+                        "content": "You are a credential verification expert. Analyze qualifications for fraud.",
+                    },
                     {"role": "user", "content": prompt},
                 ],
                 temperature=0.3,

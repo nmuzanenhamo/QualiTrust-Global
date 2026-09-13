@@ -3,7 +3,7 @@
 import os
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -87,9 +87,7 @@ def lookup_credential(
     on a transcript or certificate without knowing the internal database ID.
     Registration number is optional — not all certificates include one.
     """
-    qualification = VerificationService.lookup_by_serial_registration(
-        db, serial_number, registration_number
-    )
+    qualification = VerificationService.lookup_by_serial_registration(db, serial_number, registration_number)
     if not qualification:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

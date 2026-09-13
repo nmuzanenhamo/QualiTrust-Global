@@ -3,9 +3,9 @@
 import json
 import math
 
-from sqlalchemy.orm import Session, Query
+from sqlalchemy.orm import Query, Session
 
-from app.models import AuditAction, AuditLog, User
+from app.models import AuditAction, AuditLog
 from app.schemas.audit import AuditLogSearchResult
 
 
@@ -77,17 +77,17 @@ class AuditService:
 
         if start_date:
             from datetime import datetime as dt
+
             q = q.filter(AuditLog.created_at >= dt.fromisoformat(start_date))
 
         if end_date:
             from datetime import datetime as dt
+
             q = q.filter(AuditLog.created_at <= dt.fromisoformat(end_date))
 
         total = q.count()
         total_pages = math.ceil(total / page_size) if total > 0 else 0
-        items = q.order_by(AuditLog.created_at.desc()).offset(
-            (page - 1) * page_size
-        ).limit(page_size).all()
+        items = q.order_by(AuditLog.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
         return AuditLogSearchResult(
             items=items,

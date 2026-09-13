@@ -1,9 +1,9 @@
 """Document service for extracting text from uploaded certificates and transcripts."""
 
 import io
+import logging
 import os
 import sys
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,6 @@ class DocumentService:
         """
         try:
             import pdfplumber
-            from PIL import Image
             import pytesseract
 
             tess_cmd = os.environ.get("TESSERACT_CMD")
@@ -119,8 +118,8 @@ class DocumentService:
         Tesseract is not installed.
         """
         try:
-            from PIL import Image, ImageOps
             import pytesseract
+            from PIL import Image, ImageOps
 
             tess_cmd = os.environ.get("TESSERACT_CMD")
             if tess_cmd:

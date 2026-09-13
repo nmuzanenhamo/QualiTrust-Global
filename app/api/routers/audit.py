@@ -51,6 +51,7 @@ def get_audit_log(
     log = AuditService.get_audit_log_by_id(db, log_id)
     if not log:
         from fastapi import HTTPException
+
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Audit log with ID {log_id} not found",

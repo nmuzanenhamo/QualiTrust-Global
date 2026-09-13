@@ -8,7 +8,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_admin
 from app.core.security import create_access_token, create_refresh_token, decode_token
 from app.models import AuditAction, User, UserRole
-from app.schemas.user import Token, UserCreate, UserLogin, UserResponse
+from app.schemas.user import Token, UserCreate, UserResponse
 from app.services.audit_service import AuditService
 from app.services.auth_service import AuthService
 

@@ -1,7 +1,6 @@
 """Verification service for qualification authenticity checks."""
 
 import json
-from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -86,6 +85,7 @@ class VerificationService:
 
         if method in (VerificationMethod.AI_ASSISTED, VerificationMethod.AUTOMATED):
             from app.services.ai_service import AIService
+
             ai_analysis = AIService._heuristic_analysis(qualification)
             ai_confidence_score = ai_analysis.get("confidence_score")
 
@@ -101,20 +101,19 @@ class VerificationService:
 
         # Document comparison (works for any method when a document is uploaded)
         if document_bytes:
-            from app.services.document_service import DocumentService
             from app.services.document_comparison_service import DocumentComparisonService
+            from app.services.document_service import DocumentService
 
             extracted_text = DocumentService.extract_text(document_bytes, document_filename or "")
 
             # Compare uploaded document against registered data
-            data_match = DocumentComparisonService.compare_document_to_qualification(
-                extracted_text, qualification
-            )
+            data_match = DocumentComparisonService.compare_document_to_qualification(extracted_text, qualification)
 
             # If the registered qualification also has a stored document, compare the two documents
             doc_vs_doc = None
             if qualification.document_path:
                 import os
+
                 uploads_dir = os.path.join(
                     os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
                     "uploads",
@@ -125,9 +124,7 @@ class VerificationService:
                         stored_bytes = f.read()
                     stored_text = DocumentService.extract_text(stored_bytes, qualification.document_path)
                     if stored_text.strip() and extracted_text.strip():
-                        doc_vs_doc = DocumentComparisonService.compare_two_documents(
-                            stored_text, extracted_text
-                        )
+                        doc_vs_doc = DocumentComparisonService.compare_two_documents(stored_text, extracted_text)
 
             document_analysis = {
                 "data_match": {
@@ -141,7 +138,9 @@ class VerificationService:
                     "checks": doc_vs_doc.checks,
                     "recommendation": doc_vs_doc.recommendation,
                     "summary": doc_vs_doc.summary,
-                } if doc_vs_doc else None,
+                }
+                if doc_vs_doc
+                else None,
                 "extracted_text_preview": extracted_text[:500],
             }
 
