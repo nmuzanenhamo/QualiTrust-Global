@@ -14,7 +14,7 @@ class TestQualificationService:
         """Test creating a qualification."""
         data = QualificationCreate(
             title="Test Degree",
-            qualification_type="degree",
+            qualification_type="undergraduate_degree",
             issuing_institution="Test University",
             holder_name="Test Holder",
             holder_email="holder@test.com",
@@ -26,7 +26,7 @@ class TestQualificationService:
         qual = QualificationService.create_qualification(db_session, data, admin_user)
         assert qual.id is not None
         assert qual.title == "Test Degree"
-        assert qual.status == QualificationStatus.PENDING
+        assert qual.status == QualificationStatus.REGISTERED
         assert qual.registered_by == admin_user.id
 
     def test_get_qualification_by_id(self, db_session, admin_user, sample_qualification_data):
@@ -61,7 +61,7 @@ class TestQualificationService:
         """Test filtering by qualification type."""
         data = QualificationCreate(**sample_qualification_data)
         QualificationService.create_qualification(db_session, data, admin_user)
-        result = QualificationService.search_qualifications(db_session, qualification_type="degree")
+        result = QualificationService.search_qualifications(db_session, qualification_type="undergraduate_degree")
         assert result.total == 1
 
     def test_update_qualification(self, db_session, admin_user, sample_qualification_data):

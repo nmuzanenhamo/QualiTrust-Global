@@ -34,6 +34,7 @@ class BlockchainService:
             "date_expires": qualification.date_expires.isoformat() if qualification.date_expires else "",
             "registration_number": qualification.registration_number or "",
             "serial_number": qualification.serial_number or "",
+            "grade": qualification.grade or "",
         }
         data_string = json.dumps(credential_data, sort_keys=True)
         return hashlib.sha256(data_string.encode("utf-8")).hexdigest()
@@ -100,7 +101,10 @@ class BlockchainService:
             "not_revoked": qualification.status.value != "revoked" if qualification.status else False,
         }
 
-        all_passed = all(checks.values())
+        # Registration number is optional — not all certificates include one.
+        # Only hash, serial, expiry, and revocation are hard requirements.
+        hard_checks = {k: v for k, v in checks.items() if k != "has_registration"}
+        all_passed = all(hard_checks.values())
 
         result = {
             "is_authentic": all_passed,

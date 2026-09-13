@@ -2,6 +2,8 @@
 
 import math
 
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, Query
 
 from app.models import Qualification, QualificationStatus, QualificationType, User
@@ -10,6 +12,7 @@ from app.schemas.qualification import (
     QualificationSearchResult,
     QualificationUpdate,
 )
+from app.services.blockchain_service import BlockchainService
 
 
 class QualificationService:
@@ -22,6 +25,22 @@ class QualificationService:
         user: User,
     ) -> Qualification:
         """Register a new qualification."""
+        # Check for duplicate serial number before inserting
+        if qualification_data.serial_number:
+            existing = (
+                db.query(Qualification)
+                .filter(
+                    Qualification.serial_number == qualification_data.serial_number,
+                    Qualification.is_deleted == False,
+                )
+                .first()
+            )
+            if existing:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"A credential with serial number '{qualification_data.serial_number}' already exists.",
+                )
+
         qualification = Qualification(
             title=qualification_data.title,
             qualification_type=QualificationType(qualification_data.qualification_type),
@@ -33,13 +52,25 @@ class QualificationService:
             date_expires=qualification_data.date_expires,
             registration_number=qualification_data.registration_number,
             serial_number=qualification_data.serial_number,
+            grade=qualification_data.grade,
             description=qualification_data.description,
-            status=QualificationStatus.PENDING,
+            status=QualificationStatus.REGISTERED,
             registered_by=user.id,
         )
         db.add(qualification)
-        db.commit()
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            raise HTTPException(
+                status_code=400,
+                detail=f"A credential with serial number '{qualification_data.serial_number}' already exists.",
+            )
         db.refresh(qualification)
+
+        # Assign blockchain hash for tamper-evident verification
+        qualification = BlockchainService.assign_hash(db, qualification)
+
         return qualification
 
     @staticmethod
@@ -127,10 +158,15 @@ class QualificationService:
 
     @staticmethod
     def soft_delete_qualification(db: Session, qualification_id: int) -> bool:
-        """Soft delete a qualification."""
+        """Soft delete a qualification.
+
+        Clears the serial_number to free up the UNIQUE constraint so the
+        serial can be re-used by a new credential if needed.
+        """
         qualification = QualificationService.get_qualification(db, qualification_id)
         if not qualification:
             return False
         qualification.is_deleted = True
+        qualification.serial_number = None
         db.commit()
         return True

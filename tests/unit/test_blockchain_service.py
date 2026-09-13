@@ -15,7 +15,7 @@ class TestBlockchainService:
         """Test that credential hash is computed correctly."""
         qual = Qualification(
             title="Test Degree",
-            qualification_type=QualificationType.DEGREE,
+            qualification_type=QualificationType.UNDERGRADUATE_DEGREE,
             issuing_institution="Test University",
             holder_name="Test Holder",
             holder_email="holder@test.com",
@@ -23,7 +23,7 @@ class TestBlockchainService:
             date_issued=datetime(2020, 1, 1),
             registration_number="REG001",
             serial_number="SN001",
-            status=QualificationStatus.PENDING,
+            status=QualificationStatus.REGISTERED,
             registered_by=admin_user.id,
         )
         db_session.add(qual)
@@ -38,13 +38,13 @@ class TestBlockchainService:
         """Test that hash and previous hash are assigned."""
         qual = Qualification(
             title="Test Degree 2",
-            qualification_type=QualificationType.DEGREE,
+            qualification_type=QualificationType.UNDERGRADUATE_DEGREE,
             issuing_institution="Test University",
             holder_name="Test Holder 2",
             date_issued=datetime(2020, 1, 1),
             registration_number="REG002",
             serial_number="SN002",
-            status=QualificationStatus.PENDING,
+            status=QualificationStatus.REGISTERED,
             registered_by=admin_user.id,
         )
         db_session.add(qual)
@@ -60,7 +60,7 @@ class TestBlockchainService:
         """Test that a valid chain passes integrity check."""
         qual = Qualification(
             title="Valid Degree",
-            qualification_type=QualificationType.DEGREE,
+            qualification_type=QualificationType.UNDERGRADUATE_DEGREE,
             issuing_institution="Valid University",
             holder_name="Valid Holder",
             date_issued=datetime(2020, 1, 1),
@@ -81,7 +81,7 @@ class TestBlockchainService:
         """Test that a tampered credential fails integrity check."""
         qual = Qualification(
             title="Tampered Degree",
-            qualification_type=QualificationType.DEGREE,
+            qualification_type=QualificationType.UNDERGRADUATE_DEGREE,
             issuing_institution="Test University",
             holder_name="Tampered Holder",
             date_issued=datetime(2020, 1, 1),
@@ -105,13 +105,13 @@ class TestBlockchainService:
         """Test the full verification result."""
         qual = Qualification(
             title="Verify Me",
-            qualification_type=QualificationType.DEGREE,
+            qualification_type=QualificationType.UNDERGRADUATE_DEGREE,
             issuing_institution="Verify University",
             holder_name="Verify Holder",
             date_issued=datetime(2020, 1, 1),
             registration_number="REG005",
             serial_number="SN005",
-            status=QualificationStatus.PENDING,
+            status=QualificationStatus.REGISTERED,
             registered_by=admin_user.id,
         )
         db_session.add(qual)

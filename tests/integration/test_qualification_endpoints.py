@@ -14,7 +14,7 @@ class TestQualificationEndpoints:
         assert response.status_code == 201
         data = response.json()
         assert data["title"] == sample_qualification_data["title"]
-        assert data["status"] == "pending"
+        assert data["status"] == "registered"
         assert "id" in data
 
     def test_create_qualification_as_viewer_denied(self, client, viewer_headers, sample_qualification_data):

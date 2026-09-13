@@ -18,7 +18,9 @@ class QualificationBase(BaseModel):
     date_expires: datetime | None = None
     registration_number: str | None = None
     serial_number: str | None = None
+    grade: str | None = None
     description: str | None = None
+    document_path: str | None = None
 
 
 class QualificationCreate(QualificationBase):
@@ -39,7 +41,9 @@ class QualificationUpdate(BaseModel):
     date_expires: datetime | None = None
     registration_number: str | None = None
     serial_number: str | None = None
+    grade: str | None = None
     description: str | None = None
+    document_path: str | None = None
     status: str | None = None
 
 

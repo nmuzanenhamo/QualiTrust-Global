@@ -144,7 +144,7 @@ def sample_qualification_data():
     """Sample qualification data for testing."""
     return {
         "title": "Bachelor of Science in Computer Science",
-        "qualification_type": "degree",
+        "qualification_type": "undergraduate_degree",
         "issuing_institution": "Midlands State University",
         "holder_name": "John Doe",
         "holder_email": "john.doe@example.com",

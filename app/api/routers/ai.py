@@ -5,8 +5,9 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import require_verifier
-from app.models import User
+from app.models import AuditAction, User
 from app.services.ai_service import AIService
+from app.services.audit_service import AuditService
 
 router = APIRouter()
 
@@ -25,4 +26,15 @@ async def analyze_credential(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
+
+    AuditService.log_action(
+        db,
+        user_id=current_user.id,
+        action=AuditAction.AI_ANALYSIS,
+        entity_type="qualification",
+        entity_id=qualification_id,
+        qualification_id=qualification_id,
+        description=f"AI analysis: risk={result.get('risk_score', 0)}, result={result.get('result', 'unknown')}",
+    )
+
     return result

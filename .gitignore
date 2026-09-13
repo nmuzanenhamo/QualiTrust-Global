@@ -62,3 +62,10 @@ grafana_data/
 
 # Prometheus
 prometheus_data/
+
+# Uploads (user-uploaded documents, should not be in git)
+uploads/
+app/uploads/
+
+# Windows artifacts
+nul

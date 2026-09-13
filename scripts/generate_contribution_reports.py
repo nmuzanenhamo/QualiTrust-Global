@@ -227,8 +227,95 @@ def generate_contribution_report(repo_path, member):
         ]
     )
 
-    # 7. Reflection
-    add_heading(doc, "7. Reflection on Lessons Learned and Challenges", level=1)
+    # 7. Verification Methods Design Rationale
+    add_heading(doc, "7. Verification Methods Design Rationale", level=1)
+    add_paragraph(doc,
+        "The system provides four verification methods. Each method serves a distinct "
+        "purpose and addresses a different real-world verification scenario. The following "
+        "explanation justifies the design decision to include all four methods rather than "
+        "a single approach."
+    )
+
+    add_heading(doc, "7.1 Blockchain Method", level=2)
+    add_paragraph(doc,
+        "The Blockchain method runs six SHA-256 hash chain integrity checks: whether a "
+        "credential hash has been assigned, whether the recomputed hash matches the stored "
+        "hash and the chain link to the previous record is intact, whether a serial number "
+        "exists, whether a registration number exists, whether the qualification has not "
+        "expired, and whether the status is not revoked. All six checks must pass for the "
+        "credential to be marked as Verified. This method answers the question: has this "
+        "credential been tampered with since it was registered? It is the fastest and most "
+        "objective check, relying purely on cryptographic hashing with no human judgement "
+        "or AI inference. It serves as the baseline verification mechanism that every other "
+        "method builds upon."
+    )
+
+    add_heading(doc, "7.2 Manual Review Method", level=2)
+    add_paragraph(doc,
+        "The Manual Review method runs the exact same six blockchain checks, but the audit "
+        "trail records that a human reviewed the physical document alongside the blockchain "
+        "check. The verifier can add notes such as comparing the digital record against the "
+        "original transcript or confirming the holder's identity in person. Blockchain alone "
+        "only proves the digital record is intact; it does not prove the person presenting "
+        "the certificate is the legitimate holder. Manual Review documents that a human "
+        "performed that extra step. The distinction in the audit trail matters for legal and "
+        "compliance purposes because it shows how the verification was conducted, not just "
+        "that it was conducted."
+    )
+
+    add_heading(doc, "7.3 AI Assisted Method", level=2)
+    add_paragraph(doc,
+        "The AI Assisted method runs the six blockchain checks plus the AI fraud detection "
+        "engine. The AI scans for anomalies including missing serial numbers, missing "
+        "registration numbers, expired qualifications, no verifiable holder contact "
+        "information, suspicious institution names (such as diploma mill or fake), and "
+        "unclassified qualification types. It produces a risk score from 0 to 100 with a "
+        "recommendation of APPROVE, REVIEW, or REJECT. The final result combines both "
+        "layers: if blockchain checks fail the result is Rejected regardless of AI; if "
+        "blockchain passes and AI says APPROVE the result is Verified; if blockchain "
+        "passes and AI says REVIEW the result is Inconclusive, signalling that human "
+        "follow-up is needed; if blockchain passes but AI says REJECT the result is "
+        "Rejected. This method is justified because blockchain only detects tampering; it "
+        "cannot detect fraud at the point of registration. A university could register a "
+        "fake credential with a valid serial number and blockchain verification would pass "
+        "because the record was never tampered with. The AI engine catches patterns that "
+        "suggest the credential itself is suspicious, providing two layers of defence in "
+        "one step."
+    )
+
+    add_heading(doc, "7.4 Automated Method", level=2)
+    add_paragraph(doc,
+        "The Automated method uses identical logic to AI Assisted (blockchain plus AI "
+        "fraud analysis), but the audit trail records it as a fully automated process with "
+        "no human in the loop. This distinction matters for compliance, accountability, and "
+        "audit defence. Some regulators require documentation of whether a human reviewed a "
+        "verification decision. If a credential is wrongly approved, the audit trail must "
+        "show whether a human or the algorithm made the call. Automated is designed for "
+        "batch verification scenarios such as an employer verifying hundreds of credentials "
+        "or a licensing board running periodic re-verification of all credentials, where no "
+        "human reviews individual results."
+    )
+
+    add_heading(doc, "7.5 Justification for Having All Four Methods", level=2)
+    add_paragraph(doc,
+        "The four methods form a progressive escalation from pure cryptography to human "
+        "judgement to AI augmentation to full automation. Blockchain provides a quick "
+        "integrity check for low-risk credentials. Manual Review is for high-stakes "
+        "verification where a human must physically inspect the document. AI Assisted is "
+        "for when a verifier wants both tamper detection and fraud risk assessment in one "
+        "step with human oversight. Automated is for batch processing pipelines where no "
+        "human reviews individual results. Having all four allows the system to serve "
+        "everything from a single credential check by a small employer to a large-scale "
+        "automated verification pipeline at a licensing board. Removing any one method "
+        "would leave a gap: without Blockchain there is no tamper detection; without Manual "
+        "Review there is no documented human verification of physical documents; without "
+        "AI Assisted there is no fraud risk assessment for individual cases; without "
+        "Automated there is no way to distinguish human-initiated AI verification from "
+        "fully algorithmic decisions in the audit trail."
+    )
+
+    # 8. Reflection
+    add_heading(doc, "8. Reflection on Lessons Learned and Challenges", level=1)
     add_paragraph(doc,
         f"Working on the Qualification Verification System provided valuable experience in "
         f"collaborative software engineering and DevOps practices. As the {member['role']}, "

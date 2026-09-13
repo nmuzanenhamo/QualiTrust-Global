@@ -5,7 +5,10 @@ A DevOps-enabled Qualification Verification System built with FastAPI, featuring
 ## Features
 
 - **Qualification Management:** Register, search, update, and retrieve qualification records
+- **OCR Document Extraction:** Upload certificates/transcripts (PDF or images) and auto-extract holder name, institution, qualification title, grade, serial/reg numbers, and date via Tesseract OCR
+- **Grade / Class Tracking:** Records the class of degree (e.g. First Class Honours, Upper Second (2.1), Distinction) so verification confirms the specific qualification earned
 - **Verification Engine:** Blockchain-based (SHA-256 hash chaining) authenticity verification
+- **Full Credential Verification:** Verification results display the complete confirmed qualification details (title, institution, holder, grade, dates) — not just a pass/fail
 - **Audit Logging:** Immutable, append-only audit trail for all verification activities
 - **Authentication & Security:** JWT-based auth with role-based access control (RBAC)
 - **AI Verification Assistant:** OpenAI-powered anomaly detection for fraudulent credentials
@@ -107,15 +110,19 @@ docker-compose up --build
 |--------|----------|-------------|------|
 | GET | /api/v1/qualifications/ | Search qualifications | Any authenticated |
 | POST | /api/v1/qualifications/ | Register a qualification | Verifier/Admin |
+| POST | /api/v1/qualifications/extract | Upload certificate & auto-extract data via OCR | Any authenticated |
+| GET | /api/v1/qualifications/lookup | Look up by serial + registration number | Any authenticated |
 | GET | /api/v1/qualifications/{id} | Get a specific qualification | Any authenticated |
 | PUT | /api/v1/qualifications/{id} | Update a qualification | Verifier/Admin |
 | DELETE | /api/v1/qualifications/{id} | Soft delete a qualification | Verifier/Admin |
+| POST | /api/v1/qualifications/{id}/document | Upload certificate/transcript document | Verifier/Admin |
 
 ### Verification
 
 | Method | Endpoint | Description | Role |
 |--------|----------|-------------|------|
 | POST | /api/v1/qualifications/{id}/verify | Verify a qualification | Verifier/Admin |
+| POST | /api/v1/qualifications/{id}/verify-with-document | Verify with uploaded document comparison | Verifier/Admin |
 | GET | /api/v1/qualifications/{id}/verifications | Get verification history | Verifier/Admin |
 
 ### AI Analysis

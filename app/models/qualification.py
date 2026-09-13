@@ -12,7 +12,7 @@ from app.core.database import Base
 class QualificationStatus(str, enum.Enum):
     """Status of a qualification record."""
 
-    PENDING = "pending"
+    REGISTERED = "registered"
     VERIFIED = "verified"
     REJECTED = "rejected"
     REVOKED = "revoked"
@@ -21,7 +21,11 @@ class QualificationStatus(str, enum.Enum):
 class QualificationType(str, enum.Enum):
     """Type of qualification or certification."""
 
-    DEGREE = "degree"
+    UNDERGRADUATE_DEGREE = "undergraduate_degree"
+    MASTERS_DEGREE = "masters_degree"
+    POSTGRADUATE_DIPLOMA = "postgraduate_diploma"
+    POSTGRADUATE_CERTIFICATE = "postgraduate_certificate"
+    DOCTORATE = "doctorate"
     DIPLOMA = "diploma"
     CERTIFICATE = "certificate"
     PROFESSIONAL_CERTIFICATION = "professional_certification"
@@ -44,8 +48,10 @@ class Qualification(Base):
     date_expires = Column(DateTime, nullable=True)
     registration_number = Column(String(100), nullable=True, index=True)
     serial_number = Column(String(100), nullable=True, unique=True)
+    grade = Column(String(200), nullable=True)
     description = Column(Text, nullable=True)
-    status = Column(Enum(QualificationStatus), default=QualificationStatus.PENDING, nullable=False)
+    document_path = Column(String(500), nullable=True)
+    status = Column(Enum(QualificationStatus), default=QualificationStatus.REGISTERED, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
 
     # Blockchain verification fields

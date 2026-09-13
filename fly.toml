@@ -1,0 +1,45 @@
+# Fly.io deployment configuration
+# Change the app name below to something unique (lowercase, hyphens only)
+app = "qualification-verification-system"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DEBUG = "false"
+  DATABASE_URL = "sqlite:////app/data/qualification_verification.db"
+  ALGORITHM = "HS256"
+  ACCESS_TOKEN_EXPIRE_MINUTES = "30"
+  REFRESH_TOKEN_EXPIRE_MINUTES = "1440"
+  RATE_LIMIT_PER_MINUTE = "60"
+  CORS_ORIGINS = '["*"]'
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 250
+    soft_limit = 200
+
+[[http_service.checks]]
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "10s"
+  method = "GET"
+  path = "/health"
+
+[[vm]]
+  memory = "512"
+  cpu_kind = "shared"
+  cpus = 1
+
+# Persistent volume for SQLite database
+[[mounts]]
+  source = "qvs_data"
+  destination = "/app/data"

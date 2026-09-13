@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QualiTrust Global — Verification System</title>
+  <link rel="stylesheet" href="/css/style.css?v=5" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ══════════════════════ AUTH PAGE ══════════════════════ -->
+  <div id="auth-page" class="auth-page">
+    <div class="auth-bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="logo-mark">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <h1>QualiTrust <span class="grad-text">Global</span></h1>
+          <p>Qualification Verification System</p>
+        </div>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login" type="button">Sign In</button>
+        <button class="auth-tab" data-tab="register" type="button">Register</button>
+      </div>
+
+      <form id="login-form" class="auth-form active">
+        <div class="field">
+          <label for="login-email">Email Address</label>
+          <div class="input-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+            <input type="email" id="login-email" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <div class="input-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
+            <button type="button" class="pw-toggle" data-target="login-password" aria-label="Show password">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">
+          Sign In
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+        <p class="auth-hint">Default admin: <code>admin@qvs.com</code> / <code>Admin1234!</code></p>
+      </form>
+
+      <form id="register-form" class="auth-form">
+        <div class="field">
+          <label for="reg-name">Full Name</label>
+          <div class="input-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input type="text" id="reg-name" placeholder="John Doe" required />
+          </div>
+        </div>
+        <div class="field">
+          <label for="reg-email">Email Address</label>
+          <div class="input-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+            <input type="email" id="reg-email" placeholder="you@example.com" required />
+          </div>
+        </div>
+        <div class="field">
+          <label for="reg-password">Password</label>
+          <div class="input-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="reg-password" placeholder="Min 8 characters" required minlength="8" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="reg-role">Role</label>
+          <div class="input-wrap select-wrap">
+            <select id="reg-role">
+              <option value="viewer">Viewer — read-only access</option>
+              <option value="verifier">Verifier — register & verify</option>
+            </select>
+            <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <small class="field-note">Admin accounts are created by existing admins only.</small>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">
+          Create Account
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ APP ══════════════════════ -->
+  <div id="app" class="app hidden">
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="side-brand">
+        <div class="logo-mark">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <strong>QualiTrust</strong>
+          <span>Global QVS</span>
+        </div>
+      </div>
+
+      <nav class="side-nav">
+        <p class="nav-label">Overview</p>
+        <a class="nav-item active" data-page="dashboard" href="#">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          <span>Dashboard</span>
+        </a>
+
+        <p class="nav-label">Credentials</p>
+        <a class="nav-item" data-page="qualifications" href="#">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          <span>Qualifications</span>
+          <span class="nav-count" id="nav-qual-count"></span>
+        </a>
+        <a class="nav-item" data-page="verify" href="#">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span>Verify Credential</span>
+        </a>
+        <a class="nav-item" data-page="ai" href="#">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+          <span>AI Fraud Scan</span>
+        </a>
+
+        <p class="nav-label">Governance</p>
+        <a class="nav-item" data-page="audit" href="#">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+          <span>Audit Trail</span>
+        </a>
+        <a class="nav-item admin-only" data-page="users" href="#" style="display:none;">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>User Management</span>
+        </a>
+      </nav>
+
+      <div class="side-footer">
+        <div class="side-user">
+          <div class="avatar" id="user-avatar">U</div>
+          <div class="side-user-meta">
+            <span class="side-user-name" id="user-name">User</span>
+            <span class="side-user-role" id="user-role">role</span>
+          </div>
+        </div>
+        <button class="btn-icon logout-btn" id="logout-btn" title="Sign out">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <header class="topbar">
+        <button class="btn-icon menu-btn" id="menu-toggle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg>
+        </button>
+        <div class="topbar-title">
+          <h2 id="page-title">Dashboard</h2>
+          <p id="page-date"></p>
+        </div>
+        <div class="topbar-right">
+          <div class="sys-pill">
+            <span class="pulse-dot"></span>
+            System Online
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+
+        <!-- ─────────── PAGE: DASHBOARD ─────────── -->
+        <section id="page-dashboard" class="page active">
+          <div class="stat-grid">
+            <div class="stat-card accent-blue">
+              <div class="stat-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+              </div>
+              <div class="stat-meta">
+                <span class="stat-value" id="stat-total">0</span>
+                <span class="stat-label">Total Credentials</span>
+              </div>
+            </div>
+            <div class="stat-card accent-green">
+              <div class="stat-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+              </div>
+              <div class="stat-meta">
+                <span class="stat-value" id="stat-verified">0</span>
+                <span class="stat-label">Verified</span>
+              </div>
+            </div>
+            <div class="stat-card accent-amber">
+              <div class="stat-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <div class="stat-meta">
+                <span class="stat-value" id="stat-pending">0</span>
+                <span class="stat-label">Registered</span>
+              </div>
+            </div>
+            <div class="stat-card accent-red">
+              <div class="stat-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+              </div>
+              <div class="stat-meta">
+                <span class="stat-value" id="stat-rejected">0</span>
+                <span class="stat-label">Rejected</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-grid">
+            <div class="card">
+              <div class="card-head">
+                <h3>Status Distribution</h3>
+              </div>
+              <div class="card-body dash-chart-body">
+                <div class="donut" id="status-donut">
+                  <svg viewBox="0 0 42 42">
+                    <circle class="donut-ring" cx="21" cy="21" r="15.9" />
+                    <circle class="donut-seg seg-verified" cx="21" cy="21" r="15.9" stroke-dasharray="0 100" />
+                    <circle class="donut-seg seg-pending" cx="21" cy="21" r="15.9" stroke-dasharray="0 100" />
+                    <circle class="donut-seg seg-rejected" cx="21" cy="21" r="15.9" stroke-dasharray="0 100" />
+                  </svg>
+                  <div class="donut-center">
+                    <strong id="donut-total">0</strong>
+                    <span>Credentials</span>
+                  </div>
+                </div>
+                <div class="donut-legend">
+                  <div class="legend-item"><span class="dot dot-green"></span>Verified <b id="legend-verified">0</b></div>
+                  <div class="legend-item"><span class="dot dot-amber"></span>Registered <b id="legend-pending">0</b></div>
+                  <div class="legend-item"><span class="dot dot-red"></span>Rejected <b id="legend-rejected">0</b></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card dash-recent">
+              <div class="card-head">
+                <h3>Recent Credentials</h3>
+                <button class="btn btn-ghost btn-sm" id="go-to-quals">View all</button>
+              </div>
+              <div class="card-body no-pad">
+                <div id="recent-quals-table" class="table-wrap">
+                  <div class="skeleton-table"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─────────── PAGE: QUALIFICATIONS ─────────── -->
+        <section id="page-qualifications" class="page">
+          <div class="card">
+            <div class="card-head table-head">
+              <div class="toolbar">
+                <div class="input-wrap search-wrap">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  <input type="text" id="qual-search" placeholder="Search title, holder, registration or serial no..." />
+                </div>
+                <div class="input-wrap select-wrap">
+                  <select id="qual-status-filter">
+                    <option value="">All Statuses</option>
+                    <option value="registered">Registered</option>
+                    <option value="verified">Verified</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="revoked">Revoked</option>
+                  </select>
+                  <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                </div>
+              </div>
+              <button class="btn btn-primary" id="add-qual-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Register Credential
+              </button>
+            </div>
+            <div class="card-body no-pad">
+              <div id="quals-table" class="table-wrap">
+                <div class="skeleton-table"></div>
+              </div>
+              <div id="quals-pagination" class="pagination"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─────────── PAGE: VERIFY ─────────── -->
+        <section id="page-verify" class="page">
+          <div class="verify-grid">
+            <div class="card">
+              <div class="card-head">
+                <h3>Verify Credential</h3>
+              </div>
+              <div class="card-body">
+                <!-- Lookup mode tabs -->
+                <div class="verify-tabs">
+                  <button class="verify-tab active" data-lookup="id" type="button">By ID</button>
+                  <button class="verify-tab" data-lookup="serial" type="button">By Serial / Reg No.</button>
+                </div>
+
+                <!-- By ID mode -->
+                <div id="lookup-id" class="lookup-mode active">
+                  <div class="field">
+                    <label for="verify-id">Qualification ID</label>
+                    <div class="input-wrap">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/><circle cx="12" cy="12" r="3.5"/></svg>
+                      <input type="number" id="verify-id" placeholder="e.g. 1" min="1" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- By Serial/Reg mode -->
+                <div id="lookup-serial" class="lookup-mode">
+                  <div class="field">
+                    <label for="verify-serial">Serial Number *</label>
+                    <div class="input-wrap">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7"/><path d="M3 7l9-4 9 4"/><path d="M9 13h6"/></svg>
+                      <input type="text" id="verify-serial" placeholder="e.g. SN-2024-001 or 25694" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="verify-reg">Registration Number <span class="optional">optional</span></label>
+                    <div class="input-wrap">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h3"/></svg>
+                      <input type="text" id="verify-reg" placeholder="e.g. R211790N (if available)" />
+                    </div>
+                  </div>
+                  <div class="verify-tip" style="margin-bottom:16px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    <span>Enter the serial number as printed on the certificate. Registration number is optional.</span>
+                  </div>
+                </div>
+
+                <!-- Found credential preview (shown after serial/reg lookup) -->
+                <div id="lookup-preview" class="lookup-preview hidden">
+                  <div class="lookup-preview-head">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                    <span>Credential Found</span>
+                  </div>
+                  <div id="lookup-preview-body"></div>
+                </div>
+
+                <div class="field">
+                  <label for="verify-method">Verification Method</label>
+                  <div class="input-wrap select-wrap">
+                    <select id="verify-method">
+                      <option value="blockchain">Blockchain — SHA-256 hash chain checks</option>
+                      <option value="manual">Manual Review — human-reviewed blockchain checks</option>
+                      <option value="ai_assisted">AI Assisted — blockchain + AI fraud analysis</option>
+                      <option value="automated">Automated — blockchain + AI (no human review)</option>
+                    </select>
+                    <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="verify-notes">Notes <span class="optional">optional</span></label>
+                  <textarea id="verify-notes" rows="3" placeholder="Context for this verification..."></textarea>
+                </div>
+                <div class="field">
+                  <label>Upload Document for AI Comparison <span class="optional">optional</span></label>
+                  <div id="verify-file-drop" class="file-drop">
+                    <input type="file" id="verify-document" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp" hidden />
+                    <div class="file-drop-inner" id="verify-file-drop-inner">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+                      <span id="verify-file-drop-text">Upload certificate/transcript to compare</span>
+                      <span class="file-drop-hint">AI will extract text and compare against registered data</span>
+                    </div>
+                  </div>
+                </div>
+                <button class="btn btn-primary btn-block btn-lg" id="verify-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                  Run Verification
+                </button>
+              </div>
+            </div>
+
+            <div class="verify-right">
+              <div id="verify-empty" class="empty-panel">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <h4>No verification run yet</h4>
+                <p>Enter a credential ID or serial/registration numbers and run a verification to see results here.</p>
+              </div>
+
+              <div id="verify-result" class="card hidden">
+                <div class="card-body">
+                  <div id="result-badge" class="result-badge"></div>
+                  <div id="result-details"></div>
+                  <div id="result-ai"></div>
+                  <div id="result-document"></div>
+                </div>
+              </div>
+
+              <div id="verify-history" class="card hidden">
+                <div class="card-head">
+                  <h3>Verification History</h3>
+                </div>
+                <div class="card-body">
+                  <div id="history-list" class="history-list"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─────────── PAGE: AI ANALYSIS ─────────── -->
+        <section id="page-ai" class="page">
+          <div class="verify-grid">
+            <div class="card">
+              <div class="card-head">
+                <h3>AI Fraud Analysis</h3>
+              </div>
+              <div class="card-body">
+                <div class="field">
+                  <label for="ai-qual-id">Qualification ID</label>
+                  <div class="input-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+                    <input type="number" id="ai-qual-id" placeholder="e.g. 1" min="1" />
+                  </div>
+                </div>
+                <button class="btn btn-primary btn-block btn-lg" id="ai-analyze-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+                  Run AI Analysis
+                </button>
+                <div class="ai-info">
+                  <p><strong>How it works:</strong> The AI engine scans credentials for anomalies — missing identifiers, suspicious institution names, expiry issues, and contact data gaps — producing a risk score with a recommendation.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="verify-right">
+              <div id="ai-empty" class="empty-panel">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+                <h4>No analysis run yet</h4>
+                <p>Enter a credential ID and run an AI fraud scan to see the risk assessment here.</p>
+              </div>
+              <div id="ai-result" class="hidden"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─────────── PAGE: AUDIT ─────────── -->
+        <section id="page-audit" class="page">
+          <div class="card">
+            <div class="card-head table-head">
+              <h3>Activity Log</h3>
+              <div class="toolbar">
+                <div class="input-wrap select-wrap">
+                  <select id="audit-action-filter">
+                    <option value="">All Actions</option>
+                    <option value="create">Create</option>
+                    <option value="update">Update</option>
+                    <option value="delete">Delete</option>
+                    <option value="verify">Verify</option>
+                    <option value="ai_analysis">AI Analysis</option>
+                    <option value="login">Login</option>
+                  </select>
+                  <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                </div>
+                <button class="btn btn-ghost btn-sm" id="audit-refresh">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+                  Refresh
+                </button>
+              </div>
+            </div>
+            <div class="card-body no-pad">
+              <div id="audit-table" class="table-wrap">
+                <div class="skeleton-table"></div>
+              </div>
+              <div id="audit-pagination" class="pagination"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─────────── PAGE: USERS (Admin) ─────────── -->
+        <section id="page-users" class="page">
+          <div class="card">
+            <div class="card-head table-head">
+              <h3>System Users</h3>
+              <button class="btn btn-primary" id="add-user-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Add User
+              </button>
+            </div>
+            <div class="card-body no-pad">
+              <div id="users-table" class="table-wrap">
+                <div class="skeleton-table"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ MODAL: QUALIFICATION (View / Add / Edit) ══════════════════════ -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="modal-title">Register New Credential</h3>
+        <button class="btn-icon" id="modal-close" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- View mode -->
+      <div id="view-qual-body" class="modal-body hidden"></div>
+
+      <!-- Form mode -->
+      <form id="qual-form" class="modal-body">
+        <!-- Upload-first: document upload at the top with auto-extraction -->
+        <div class="field full">
+          <label>Upload Certificate / Transcript <span style="color:var(--accent-2);">— Step 1</span></label>
+          <div id="file-drop" class="file-drop">
+            <input type="file" id="f-document" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp" hidden />
+            <div class="file-drop-inner" id="file-drop-inner">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+              <span id="file-drop-text">Click to upload or drag a PDF / image</span>
+              <span class="file-drop-hint">Max 10 MB. The system will read the document and auto-fill the fields below.</span>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-block" id="extract-btn" style="margin-top:10px; display:none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg>
+            Read Document & Auto-Fill
+          </button>
+          <div id="extract-status" class="extract-status hidden"></div>
+        </div>
+
+        <div class="form-section-divider">
+          <span>Review & Complete Details — Step 2</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="field full">
+            <label for="f-title">Qualification Title *</label>
+            <div class="input-wrap select-wrap">
+              <select id="f-title" required>
+                <option value="">Select an institution first…</option>
+              </select>
+              <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+            <input type="text" id="f-title-other" class="other-input hidden" placeholder="Type the programme / qualification title manually" />
+          </div>
+          <div class="field">
+            <label for="f-type">Type *</label>
+            <div class="input-wrap select-wrap">
+              <select id="f-type" required>
+                <option value="undergraduate_degree">Undergraduate Degree</option>
+                <option value="masters_degree">Master's Degree</option>
+                <option value="postgraduate_diploma">Postgraduate Diploma</option>
+                <option value="postgraduate_certificate">Postgraduate Certificate</option>
+                <option value="doctorate">Doctorate (PhD)</option>
+                <option value="diploma">Diploma</option>
+                <option value="certificate">Certificate</option>
+                <option value="professional_certification">Professional Certification</option>
+                <option value="other">Other</option>
+              </select>
+              <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-institution">Issuing Institution *</label>
+            <div class="input-wrap select-wrap">
+              <select id="f-institution" required>
+                <option value="">Select an institution…</option>
+              </select>
+              <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+            <input type="text" id="f-institution-other" class="other-input hidden" placeholder="Type the institution manually" />
+          </div>
+          <div class="field">
+            <label for="f-holder">Holder Name *</label>
+            <div class="input-wrap">
+              <input type="text" id="f-holder" required placeholder="John Doe" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-grade">Grade / Class of Degree</label>
+            <div class="input-wrap select-wrap">
+              <select id="f-grade">
+                <option value="">Select grade (if applicable)…</option>
+                <option value="First Class Honours">First Class Honours</option>
+                <option value="Upper Second Class Honours (2.1)">Upper Second Class (2.1)</option>
+                <option value="Lower Second Class Honours (2.2)">Lower Second Class (2.2)</option>
+                <option value="Third Class Honours">Third Class Honours</option>
+                <option value="Pass">Pass</option>
+                <option value="Ordinary (Pass)">Ordinary (Pass)</option>
+                <option value="Distinction">Distinction</option>
+                <option value="Merit">Merit</option>
+                <option value="Credit">Credit</option>
+                <option value="Summa Cum Laude">Summa Cum Laude</option>
+                <option value="Magna Cum Laude">Magna Cum Laude</option>
+                <option value="Cum Laude">Cum Laude</option>
+              </select>
+              <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-date">Date Issued *</label>
+            <div class="input-wrap">
+              <input type="date" id="f-date" required />
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-email">Holder Email</label>
+            <div class="input-wrap">
+              <input type="email" id="f-email" placeholder="john@example.com" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-idnum">Holder ID Number</label>
+            <div class="input-wrap">
+              <input type="text" id="f-idnum" placeholder="National ID" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-regnum">Registration Number</label>
+            <div class="input-wrap">
+              <input type="text" id="f-regnum" placeholder="R211790N" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-serial">Serial Number</label>
+            <div class="input-wrap">
+              <input type="text" id="f-serial" placeholder="SN-2024-001" />
+            </div>
+          </div>
+          <div class="field full">
+            <label for="f-desc">Description</label>
+            <textarea id="f-desc" rows="2" placeholder="Additional details..."></textarea>
+          </div>
+          <div class="field full">
+            <div class="verify-tip">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span>For verification, include a <strong>Serial Number</strong> (or Certificate Number). The <strong>Registration Number</strong> is optional — it's not always printed on certificates. The <strong>Grade</strong> field records the class of degree (e.g. First Class, Upper Second (2.1)).</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-ghost" id="modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="qual-submit-btn">Register Credential</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ MODAL: ADD USER ══════════════════════ -->
+  <div id="user-modal-overlay" class="modal-overlay hidden">
+    <div class="modal modal-sm">
+      <div class="modal-head">
+        <h3>Create New User</h3>
+        <button class="btn-icon" id="user-modal-close" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <form id="user-form" class="modal-body">
+        <div class="field">
+          <label for="u-name">Full Name *</label>
+          <div class="input-wrap">
+            <input type="text" id="u-name" required placeholder="Jane Smith" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="u-email">Email *</label>
+          <div class="input-wrap">
+            <input type="email" id="u-email" required placeholder="jane@qvs.com" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="u-password">Password *</label>
+          <div class="input-wrap">
+            <input type="password" id="u-password" required placeholder="Min 8 characters" minlength="8" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="u-role">Role *</label>
+          <div class="input-wrap select-wrap">
+            <select id="u-role" required>
+              <option value="viewer">Viewer</option>
+              <option value="verifier">Verifier</option>
+              <option value="admin">Admin</option>
+            </select>
+            <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-ghost" id="user-modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ OVERLAYS ══════════════════════ -->
+  <div id="toast-container" class="toast-container"></div>
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <p>Processing...</p>
+    </div>
+  </div>
+
+  <script src="/js/institutions.js?v=10"></script>
+  <script src="/js/app.js?v=10"></script>
+</body>
+</html>

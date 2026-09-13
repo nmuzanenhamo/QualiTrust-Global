@@ -40,7 +40,7 @@ def seed_database():
     qualifications = [
         Qualification(
             title="Bachelor of Science in Computer Science",
-            qualification_type=QualificationType.DEGREE,
+            qualification_type=QualificationType.UNDERGRADUATE_DEGREE,
             issuing_institution="Midlands State University",
             holder_name="John Doe",
             holder_email="john.doe@example.com",
@@ -54,7 +54,7 @@ def seed_database():
         ),
         Qualification(
             title="Master of Commerce in Information Systems Management",
-            qualification_type=QualificationType.DEGREE,
+            qualification_type=QualificationType.MASTERS_DEGREE,
             issuing_institution="Midlands State University",
             holder_name="Jane Smith",
             holder_email="jane.smith@example.com",

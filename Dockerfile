@@ -5,9 +5,9 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
-COPY pyproject.toml ./
+COPY . .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -e ".[dev]" --target=/install
+    pip install --no-cache-dir "." --target=/install
 
 # Stage 2: Runtime
 FROM python:3.11-slim AS runtime
@@ -20,6 +20,7 @@ WORKDIR /app
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy installed packages from builder
@@ -27,6 +28,9 @@ COPY --from=builder /install /usr/local/lib/python3.11/site-packages
 
 # Copy application code
 COPY . .
+
+# Create data directory for persistent storage
+RUN mkdir -p /app/data /app/uploads
 
 # Set Python path
 ENV PYTHONPATH=/app
