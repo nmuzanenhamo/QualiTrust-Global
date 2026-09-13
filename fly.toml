@@ -1,7 +1,7 @@
 # Fly.io deployment configuration
 # Change the app name below to something unique (lowercase, hyphens only)
-app = "qualification-verification-system"
-primary_region = "iad"
+app = "qualitrust-global"
+primary_region = "ams"
 
 [build]
   dockerfile = "Dockerfile"
