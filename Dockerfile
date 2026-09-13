@@ -5,9 +5,11 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
+# Create a virtual environment and install dependencies into it
 COPY . .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir "." --target=/install
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --no-cache-dir --upgrade pip && \
+    /opt/venv/bin/pip install --no-cache-dir "."
 
 # Stage 2: Runtime
 FROM python:3.11-slim AS runtime
@@ -23,8 +25,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy installed packages from builder
-COPY --from=builder /install /usr/local/lib/python3.11/site-packages
+# Copy the virtual environment from builder (includes uvicorn binary)
+COPY --from=builder /opt/venv /opt/venv
 
 # Copy application code
 COPY . .
@@ -32,7 +34,8 @@ COPY . .
 # Create data directory for persistent storage
 RUN mkdir -p /app/data /app/uploads
 
-# Set Python path
+# Put the venv at the front of PATH so `uvicorn` is found
+ENV PATH="/opt/venv/bin:$PATH"
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
