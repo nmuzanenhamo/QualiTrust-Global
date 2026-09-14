@@ -64,7 +64,10 @@ def generate_report():
         "Educational institutions, professional bodies, and employers increasingly require reliable mechanisms to verify academic and professional qualifications. The rise of credential fraud, including fake degrees and forged certificates, has created an urgent need for secure, scalable, and auditable verification systems (Alqarni et al., 2023). This report presents the design, development, testing, and deployment of a DevOps-enabled Qualification Verification System (QVS) that addresses these challenges through modern software engineering practices."
     )
     add_paragraph(doc,
-        "The system was developed by a team of four members using Python and the FastAPI framework. It incorporates blockchain-based credential verification, JWT authentication with role-based access control, AI-powered fraud detection, and real-time monitoring through Prometheus and Grafana. The project demonstrates industry-standard DevOps practices including Git-based version control, continuous integration, continuous delivery, automated testing, and Docker containerization (Bass, Weber, & Zhu, 2021)."
+        "The system was developed by a team of four members using Python and the FastAPI framework. It incorporates blockchain-based credential verification, JWT authentication with role-based access control, AI-powered document extraction and fraud detection using OpenAI's GPT-4o-mini vision model, OCR-based extraction with Tesseract as a fallback, an employer-facing verify-by-document workflow, an admin settings page for managing AI API keys with encryption at rest, and real-time monitoring through Prometheus. The project demonstrates industry-standard DevOps practices including Git-based version control, continuous integration, continuous delivery, automated testing, and Docker containerization (Bass, Weber, & Zhu, 2021)."
+    )
+    add_paragraph(doc,
+        "The system is deployed to Fly.io with a persistent SQLite volume and is publicly accessible at https://qualitrust-global.fly.dev. A modern web UI allows employers and institutions to upload certificates for verification, with the system reading documents using AI vision first and falling back to OCR and regex pattern matching when AI is unavailable."
     )
     add_paragraph(doc,
         "This report covers the problem analysis, system requirements, architecture, design decisions, DevOps workflow, testing strategy, verification strategy, and a critical evaluation of the system. The report demonstrates how software requirements are automatically verified through test cases, validation rules, and CI/CD quality gates."
@@ -96,6 +99,10 @@ def generate_report():
             ["FR6", "The system shall provide AI-powered analysis for fraud detection", "Medium"],
             ["FR7", "The system shall expose Prometheus metrics for monitoring", "Medium"],
             ["FR8", "The system shall support soft deletion of qualification records", "Medium"],
+            ["FR9", "The system shall extract credential fields from uploaded documents using AI vision (GPT-4o-mini) with OCR fallback", "High"],
+            ["FR10", "The system shall allow employers to verify credentials by uploading a certificate document alone", "High"],
+            ["FR11", "The system shall provide an admin settings page for managing AI API keys with encryption at rest", "Medium"],
+            ["FR12", "The system shall provide a web UI for registration, verification, and administration", "High"],
         ]
     )
 
@@ -135,9 +142,13 @@ def generate_report():
             ["Authentication", "python-jose (JWT)", "Industry standard token-based auth"],
             ["Password Hashing", "passlib (bcrypt)", "Secure, adaptive hashing"],
             ["Metrics", "prometheus-client", "Standard for cloud-native monitoring"],
-            ["AI Integration", "OpenAI API", "Advanced language model for fraud detection"],
+            ["AI Vision", "OpenAI GPT-4o-mini", "Reads certificates like a human, far more accurate than OCR alone"],
+            ["OCR", "Tesseract + pytesseract", "Free, open-source fallback for document text extraction"],
+            ["PDF Processing", "pdfplumber + Pillow", "PDF text extraction and image rendering for vision model"],
+            ["Encryption", "cryptography (Fernet)", "Encrypts API keys at rest in the database"],
             ["CI/CD", "GitHub Actions", "Integrated with Git, free for public repos"],
             ["Containerization", "Docker", "Portable, reproducible deployments"],
+            ["Cloud Hosting", "Fly.io", "Free tier, persistent volumes, automatic deployments"],
             ["Testing", "pytest", "Rich ecosystem, async support"],
             ["Static Analysis", "Ruff, Bandit", "Linting and security scanning"],
         ]
@@ -152,11 +163,22 @@ def generate_report():
     add_paragraph(doc,
         "A lightweight blockchain mechanism was implemented using SHA-256 hash chaining. Each qualification credential is hashed, and the hash includes the previous credential's hash, creating a tamper-evident chain. This approach was chosen over a full distributed ledger because it provides sufficient integrity guarantees for a centralised system while avoiding the complexity of distributed consensus (Zheng et al., 2023). The hash chain ensures that any modification to a credential record is immediately detectable during verification."
     )
-    add_heading(doc, "5.2 AI with Heuristic Fallback", level=2)
+    add_heading(doc, "5.2 AI Vision Extraction with Fallback", level=2)
     add_paragraph(doc,
-        "The AI verification assistant integrates with the OpenAI API but includes a rule-based heuristic fallback. This design decision ensures the system remains functional even when the OpenAI API is unavailable or when no API key is configured. The heuristic engine checks for missing fields, expired credentials, suspicious institution names, and incomplete holder information to calculate a risk score (Chen et al., 2024)."
+        "The system uses OpenAI's GPT-4o-mini vision model to read certificate documents directly, extracting structured fields such as holder name, programme title, institution, grade, serial number, and date issued. This approach is far more accurate than regex pattern matching on OCR text because the vision model reads the document like a human, understanding layout and context. When the OpenAI API is unavailable (no API key, credits exhausted, or API failure), the system automatically falls back to Tesseract OCR combined with regex pattern matching (Chen et al., 2024). The extraction method used is recorded in the response so verifiers know how the data was obtained."
     )
-    add_heading(doc, "5.3 Soft Delete Pattern", level=2)
+    add_paragraph(doc,
+        "API keys are managed through an admin settings page in the web UI and stored encrypted at rest using Fernet symmetric encryption. This allows administrators to configure AI integrations without requiring command-line access or environment variable management. The system resolves keys from the database first, then falls back to environment variables, supporting both workflows."
+    )
+    add_heading(doc, "5.3 AI Fraud Detection with Heuristic Fallback", level=2)
+    add_paragraph(doc,
+        "The AI verification assistant integrates with the OpenAI API for fraud analysis but includes a rule-based heuristic fallback. This design decision ensures the system remains functional even when the OpenAI API is unavailable or when no API key is configured. The heuristic engine checks for missing fields, expired credentials, suspicious institution names, and incomplete holder information to calculate a risk score (Chen et al., 2024)."
+    )
+    add_heading(doc, "5.4 Verify-by-Document Workflow", level=2)
+    add_paragraph(doc,
+        "A key feature for employers and institutions is the ability to verify a credential by uploading the certificate document alone, without needing to know an internal qualification ID or serial number. The system extracts fields from the document, looks up the registered credential by serial or registration number, and returns a structured result: found (with full verification), not_found (possible fraud), or unable_to_verify (insufficient data). This workflow supports the primary use case of employers verifying certificates submitted by job applicants."
+    )
+    add_heading(doc, "5.5 Soft Delete Pattern", level=2)
     add_paragraph(doc,
         "Qualification records use a soft delete pattern rather than hard deletion. This preserves data integrity and auditability, as deleted records can still be referenced in audit logs and verification history. The is_deleted flag filters records from normal queries while keeping them in the database."
     )
@@ -198,7 +220,7 @@ def generate_report():
     )
     add_heading(doc, "6.3 CD Pipeline", level=2)
     add_paragraph(doc,
-        "The CD pipeline triggers on merges to the main branch. It builds a multi-stage Docker image, pushes it to Docker Hub, and deploys to the Render cloud platform. The deployment is automated and requires no manual intervention, demonstrating continuous delivery practices."
+        "The CD pipeline triggers on pushes to the main branch. It deploys the application to Fly.io using the flyctl GitHub Action, which builds the Docker image remotely and deploys to a Fly Machine in the Amsterdam (ams) region. A persistent 1 GB volume is mounted for SQLite database storage, ensuring data survives machine restarts. The deployment is fully automated and requires no manual intervention beyond setting the Fly API token as a GitHub secret, demonstrating continuous delivery practices."
     )
 
     # 7. Testing Strategy
@@ -208,15 +230,15 @@ def generate_report():
     )
     add_heading(doc, "7.1 Unit Tests", level=2)
     add_paragraph(doc,
-        "Unit tests cover the security module (password hashing and JWT tokens), AuthService (user creation, authentication, role management), QualificationService (CRUD operations, search, pagination), BlockchainService (hash computation, chain integrity, tamper detection), and AuditService (log creation, search, filtering). Each test uses an in-memory SQLite database that is recreated for each test function, ensuring complete isolation."
+        "Unit tests cover the security module (password hashing and JWT tokens), AuthService (user creation, authentication, role management), QualificationService (CRUD operations, search, pagination), BlockchainService (hash computation, chain integrity, tamper detection), AuditService (log creation, search, filtering), CredentialExtractionService (OCR text normalization, field extraction for holder, institution, title, type, grade, serial, registration, date, ID), DocumentService (PDF and image extraction paths), DocumentComparisonService (fuzzy matching, text normalization), AIExtractionService (vision model integration, fallback logic), SettingsService (Fernet encryption, DB-first key resolution), and VerificationService (lookup, verify-by-document, history). Each test uses an in-memory SQLite database that is recreated for each test function, ensuring complete isolation."
     )
     add_heading(doc, "7.2 Integration Tests", level=2)
     add_paragraph(doc,
-        "Integration tests validate API endpoints end-to-end using the FastAPI TestClient. Tests cover authentication (register, login, refresh, me), qualification CRUD (create, read, update, delete, search), verification (verify, history), audit logs (search, get by ID), and AI analysis. Role-based access control is tested by verifying that viewers cannot perform verifier-only operations."
+        "Integration tests validate API endpoints end-to-end using the FastAPI TestClient. Tests cover authentication (register, login, refresh, me), qualification CRUD (create, read, update, delete, search), verification (verify, verify-by-document, history), audit logs (search, get by ID), AI analysis, and the admin settings endpoints (GET masked, PUT update, RBAC enforcement). Role-based access control is tested by verifying that viewers cannot perform verifier-only operations and that only admins can access the settings page."
     )
     add_heading(doc, "7.3 Test Coverage", level=2)
     add_paragraph(doc,
-        "Coverage is measured using pytest-cov and reported in XML and HTML formats. The CI pipeline enforces a minimum coverage of 80%. Coverage reports are uploaded as artifacts and to Codecov for tracking over time."
+        "Coverage is measured using pytest-cov and reported in XML and HTML formats. The CI pipeline enforces a minimum coverage of 80%. The current test suite comprises 207 tests achieving 84% line coverage. Coverage reports are uploaded as artifacts and to Codecov for tracking over time."
     )
     add_table(doc, "Table 5: Test Coverage by Module",
         ["Module", "Test Type", "Key Tests"],
@@ -226,9 +248,16 @@ def generate_report():
             ["QualificationService", "Unit", "CRUD, search, pagination, soft delete"],
             ["BlockchainService", "Unit", "Hash computation, chain integrity, tamper detection"],
             ["AuditService", "Unit", "Log creation, search, filtering"],
+            ["CredentialExtractionService", "Unit", "OCR normalization, field extraction, date normalization"],
+            ["DocumentService", "Unit", "PDF extraction, image OCR, text file support"],
+            ["DocumentComparisonService", "Unit", "Fuzzy matching, text normalization, similarity scoring"],
+            ["AIExtractionService", "Unit", "Vision model integration, fallback logic, field normalization"],
+            ["SettingsService", "Unit", "Fernet encryption, DB-first key resolution, masked listing"],
+            ["VerificationService", "Unit", "Lookup by serial, verify-by-document, verification history"],
             ["Auth Endpoints", "Integration", "Register, login, refresh, me, RBAC"],
-            ["Qualification Endpoints", "Integration", "CRUD, search, pagination, authorization"],
-            ["Verification Endpoints", "Integration", "Verify, history, AI analysis"],
+            ["Qualification Endpoints", "Integration", "CRUD, search, pagination, extract, authorization"],
+            ["Verification Endpoints", "Integration", "Verify, verify-by-document, history, AI analysis"],
+            ["Settings Endpoints", "Integration", "GET masked, PUT update, RBAC, encryption enforcement"],
         ]
     )
 
@@ -246,7 +275,10 @@ def generate_report():
             ["FR4: Audit history", "Integration test", "test_get_audit_logs, test_get_audit_log_by_id"],
             ["FR5: JWT auth and RBAC", "Unit + Integration", "test_security, test_auth_service, test_auth_endpoints"],
             ["FR6: AI fraud detection", "Integration test", "test_analyze_credential, test_analyze_nonexistent"],
-            ["NFR2: 80% coverage", "CI quality gate", "Coverage check in ci.yml"],
+            ["FR9: AI vision extraction", "Unit test", "test_ai_extraction_service, test_credential_extraction_service"],
+            ["FR10: Verify by document", "Unit + Integration", "test_verify_by_document, test_verify_document_endpoint"],
+            ["FR11: Admin settings", "Unit + Integration", "test_settings_service, test_settings_endpoints"],
+            ["NFR2: 80% coverage", "CI quality gate", "Coverage check in ci.yml (84% actual)"],
             ["NFR3: No critical issues", "CI quality gate", "Bandit scan in ci.yml"],
         ]
     )
@@ -261,11 +293,11 @@ def generate_report():
     )
     add_heading(doc, "9.1 Strengths", level=2)
     add_paragraph(doc,
-        "The layered architecture provides clear separation of concerns and makes the codebase maintainable. The blockchain verification mechanism provides tamper-evident credential records without the overhead of a full distributed ledger. The AI fallback design ensures the system remains functional without external dependencies. The comprehensive test suite with 80% coverage enforcement ensures code quality. The CI/CD pipeline automates the entire build, test, and deployment process."
+        "The layered architecture provides clear separation of concerns and makes the codebase maintainable. The blockchain verification mechanism provides tamper-evident credential records without the overhead of a full distributed ledger. The AI vision extraction with OCR fallback ensures accurate field extraction from varied certificate layouts while remaining functional without external dependencies. The verify-by-document workflow directly supports the employer use case, allowing verification from a certificate upload alone. The admin settings page with encrypted key storage provides a user-friendly way to manage AI integrations. The comprehensive test suite with 207 tests and 84% coverage ensures code quality. The CI/CD pipeline automates the entire build, test, and deployment process to Fly.io."
     )
     add_heading(doc, "9.2 Limitations", level=2)
     add_paragraph(doc,
-        "The blockchain implementation is centralised and does not provide the distributed trust guarantees of a public blockchain. The AI analysis relies on either the OpenAI API or a simple heuristic engine, which may not catch sophisticated fraud patterns. The system does not currently implement rate limiting middleware despite having the configuration in place. The audit logging is not yet integrated into all endpoints through middleware, requiring manual logging calls."
+        "The blockchain implementation is centralised and does not provide the distributed trust guarantees of a public blockchain. The AI vision extraction requires OpenAI credits, which may be a cost consideration for high-volume usage, though the OCR fallback ensures continued operation. The regex-based fallback extraction is less accurate than AI vision for unusual certificate layouts. The system runs on a single 1 GB Fly Machine, which may need scaling for concurrent users. SQLite concurrency may become a bottleneck under heavy write load, though PostgreSQL support is available through configuration."
     )
     add_heading(doc, "9.3 Lessons Learned", level=2)
     add_paragraph(doc,
