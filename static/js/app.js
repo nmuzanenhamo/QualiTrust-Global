@@ -45,6 +45,31 @@ async function api(path, options = {}) {
   return res.json();
 }
 
+/* Like api() but for file uploads (FormData). Handles token refresh on 401. */
+async function apiUpload(path, formData, options = {}) {
+  const opts = { ...options, method: 'POST', body: formData, headers: {} };
+  if (token) opts.headers['Authorization'] = `Bearer ${token}`;
+  let res = await fetch(`${API}${path}`, opts);
+  if (res.status === 401 && refreshToken) {
+    const refreshed = await tryRefresh();
+    if (refreshed) {
+      opts.headers['Authorization'] = `Bearer ${token}`;
+      res = await fetch(`${API}${path}`, opts);
+    }
+  }
+  if (!res.ok) {
+    let detail = `Request failed (${res.status})`;
+    try {
+      const err = await res.json();
+      if (typeof err.detail === 'string') detail = err.detail;
+      else detail = JSON.stringify(err.detail || err);
+    } catch { /* ignore */ }
+    throw new Error(detail);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
 async function tryRefresh() {
   try {
     const res = await fetch(`${API}/auth/refresh?refresh_token=${encodeURIComponent(refreshToken)}`, { method: 'POST' });
@@ -458,20 +483,7 @@ extractBtn.addEventListener('click', async () => {
   try {
     const formData = new FormData();
     formData.append('file', selectedFile);
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
-    const resp = await fetch(`${API}/qualifications/extract`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error(err.detail || resp.statusText || `Server error (${resp.status})`);
-    }
-    const data = await resp.json();
+    const data = await apiUpload('/qualifications/extract', formData);
 
     // Auto-fill form fields from extracted data
     if (data.holder_name) document.getElementById('f-holder').value = data.holder_name;
@@ -842,16 +854,11 @@ document.getElementById('qual-form').addEventListener('submit', async (e) => {
     if (selectedFile && createdId) {
       const formData = new FormData();
       formData.append('file', selectedFile);
-      const resp = await fetch(`${API}/qualifications/${createdId}/document`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        toast(`Document upload failed: ${err.detail || resp.statusText}`, 'error');
-      } else {
+      try {
+        await apiUpload(`/qualifications/${createdId}/document`, formData);
         toast('Document uploaded successfully!', 'success');
+      } catch (err) {
+        toast(`Document upload failed: ${err.message}`, 'error');
       }
     }
 
@@ -956,16 +963,7 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
       formData.append('method', method);
       if (notes) formData.append('notes', notes);
       formData.append('file', verifySelectedFile);
-      const resp = await fetch(`/api/v1/qualifications/verify-document`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.detail || resp.statusText);
-      }
-      const result = await resp.json();
+      const result = await apiUpload('/qualifications/verify-document', formData);
       hideLoading();
       renderDocumentVerificationResult(result);
     } catch (err) {
@@ -1015,16 +1013,7 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
       formData.append('method', method);
       if (notes) formData.append('notes', notes);
       formData.append('file', verifySelectedFile);
-      const resp = await fetch(`/api/v1/qualifications/${qualId}/verify-with-document`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.detail || resp.statusText);
-      }
-      result = await resp.json();
+      result = await apiUpload(`/qualifications/${qualId}/verify-with-document`, formData);
     } else {
       let url = `/qualifications/${qualId}/verify?method=${encodeURIComponent(method)}`;
       if (notes) url += `&notes=${encodeURIComponent(notes)}`;
