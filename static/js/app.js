@@ -956,7 +956,6 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
       formData.append('method', method);
       if (notes) formData.append('notes', notes);
       formData.append('file', verifySelectedFile);
-      const token = localStorage.getItem('token');
       const resp = await fetch(`/api/v1/qualifications/verify-document`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -1016,7 +1015,6 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
       formData.append('method', method);
       if (notes) formData.append('notes', notes);
       formData.append('file', verifySelectedFile);
-      const token = localStorage.getItem('token');
       const resp = await fetch(`/api/v1/qualifications/${qualId}/verify-with-document`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
