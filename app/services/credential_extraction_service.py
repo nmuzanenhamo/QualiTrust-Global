@@ -196,6 +196,11 @@ DATE_PATTERNS = [
         r"((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4})",
         re.I,
     ),
+    # "Oct 2025", "October 2025" (month + year, no day — common on certificates)
+    re.compile(
+        r"((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{4})",
+        re.I,
+    ),
     # "2023-06-15", "15/06/2023", "15-06-2023"
     re.compile(r"(\d{4}-\d{2}-\d{2})"),
     re.compile(r"(\d{1,2}[/-]\d{1,2}[/-]\d{4})"),
@@ -250,9 +255,19 @@ ID_PATTERNS = [
 
 # ── Degree title patterns ───────────────────────────────────────
 # Stop words prevent the title from capturing grade/serial/date text that follows
-TITLE_STOP = r"(?:\s+(?:first|second|third|pass|ordinary|distinction|credit|merit|serial|reg(?:istration)?|date|national|candidate|student|awarded|having|successfully|completed|programme|with|upper|lower|division)\b)"
+TITLE_STOP = r"(?:\s+(?:first|second|third|pass|ordinary|distinction|credit|merit|serial|reg(?:istration)?|date|national|candidate|student|awarded|having|successfully|completed|programme|with|upper|lower|division|we|hereby|certify|this|day|admitted|senate|box|satisfied|examiners)\b)"
 
 TITLE_PATTERNS = [
+    # "admitted by Senate to the Bachelor of ... in ..." — very common on degree
+    # certificates and gives a clean title without OCR noise from the header
+    re.compile(
+        r"admitted\s+by\s+Senate\s+to\s+the\s+"
+        r"((?:Bachelor|Master|Doctor|Diploma|Certificate|Associate)\s+of\s+"
+        r"[\w\s,&\-\(\)]+?(?:\s+Honou?rs|\s+\(Hons\)|\s+Hons)?"
+        r"(?:\s+Degree)?(?:\s+in\s+[\w\s,&\-\(\)]+?)?)"
+        r"(?:\s+in\s+the|\s*[,.;:]|\s*$)",
+        re.I,
+    ),
     # "Bachelor of Commerce Honours Degree in Data Science and Informatics"
     # Handles "Honours Degree" in the middle (common on Zimbabwean certificates)
     re.compile(
@@ -480,9 +495,30 @@ class CredentialExtractionService:
                     title = re.sub(r"\bHons\b", "Honours", title, flags=re.I)
                     # Fix common OCR misreads in degree titles
                     title = re.sub(r"Inforinatics", "Informatics", title, flags=re.I)
+                    # Strip OCR noise: month names + years, short repeating fragments,
+                    # and common certificate phrases that leak through
+                    title = re.sub(
+                        r"\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|"
+                        r"May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|"
+                        r"Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{4}",
+                        "",
+                        title,
+                        flags=re.I,
+                    )
+                    title = re.sub(
+                        r"\s+(?:we|hereby|certify|that|this|day|having|satisfied|"
+                        r"examiners|admitted|senate|box|successfully|completed|"
+                        r"programme|approved)\b.*$",
+                        "",
+                        title,
+                        flags=re.I,
+                    )
+                    # Strip runs of short all-caps noise tokens (e.g. "SS SS See")
+                    title = re.sub(r"\s+(?:[A-Z]{1,3}\s+){2,}[A-Z]{1,3}\b", "", title)
                     # Remove trailing prepositions and short fragments
                     title = re.sub(r"\s+(?:in|of|and|the|for|with)$", "", title, flags=re.I)
                     title = re.sub(r"\s+\w{1,3}$", "", title)
+                    title = title.strip()
                     if len(title) > 5:
                         return title
         return None
@@ -581,6 +617,17 @@ class CredentialExtractionService:
             "october": 10,
             "november": 11,
             "december": 12,
+            "jan": 1,
+            "feb": 2,
+            "mar": 3,
+            "apr": 4,
+            "jun": 6,
+            "jul": 7,
+            "aug": 8,
+            "sep": 9,
+            "oct": 10,
+            "nov": 11,
+            "dec": 12,
         }
 
         # ISO format — already normalized
@@ -597,6 +644,11 @@ class CredentialExtractionService:
         m = re.match(r"^([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})$", date_str)
         if m and m.group(1).lower() in months:
             return f"{m.group(3)}-{months[m.group(1).lower()]:02d}-{int(m.group(2)):02d}"
+
+        # "Oct 2025" / "October 2025" (month + year, no day)
+        m = re.match(r"^([A-Za-z]+)\s+(\d{4})$", date_str)
+        if m and m.group(1).lower() in months:
+            return f"{m.group(2)}-{months[m.group(1).lower()]:02d}-01"
 
         # "15/06/2023" / "15-06-2023" (day-first)
         m = re.match(r"^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$", date_str)
