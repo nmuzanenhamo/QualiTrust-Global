@@ -1,6 +1,5 @@
 """Integration tests for authentication endpoints."""
 
-from app.models import UserRole
 
 
 class TestAuthEndpoints:

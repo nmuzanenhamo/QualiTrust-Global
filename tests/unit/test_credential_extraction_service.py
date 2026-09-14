@@ -6,7 +6,6 @@ from app.services.credential_extraction_service import (
     normalize_ocr_text,
 )
 
-
 SAMPLE_CERTIFICATE_TEXT = """
 This is to certify that John Doe
 having completed the requirements
@@ -180,7 +179,9 @@ class TestExtractGrade:
     """Tests for _extract_grade."""
 
     def test_first_class(self):
-        assert "First" in (CredentialExtractionService._extract_grade("First Class Honours", "First Class Honours") or "")
+        assert "First" in (
+            CredentialExtractionService._extract_grade("First Class Honours", "First Class Honours") or ""
+        )
 
     def test_upper_second(self):
         result = CredentialExtractionService._extract_grade("Upper Second Class Honours (2.1)", "Upper Second")

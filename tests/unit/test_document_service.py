@@ -1,6 +1,6 @@
 """Unit tests for DocumentService."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from app.services.document_service import DocumentService
 

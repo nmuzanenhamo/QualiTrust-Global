@@ -37,8 +37,19 @@ class DocumentService:
             return DocumentService._extract_from_pdf(file_bytes)
         elif ext in {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}:
             return DocumentService._extract_from_image(file_bytes)
+        elif ext == ".txt":
+            return DocumentService._extract_from_text(file_bytes)
         else:
             logger.warning(f"Unsupported file type for text extraction: {ext}")
+            return ""
+
+    @staticmethod
+    def _extract_from_text(file_bytes: bytes) -> str:
+        """Extract text from a plain text file (already digital, no OCR needed)."""
+        try:
+            return file_bytes.decode("utf-8", errors="ignore").strip()
+        except Exception as e:
+            logger.error(f"Text file extraction failed: {e}")
             return ""
 
     @staticmethod

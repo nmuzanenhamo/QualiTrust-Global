@@ -1,7 +1,5 @@
 """Unit tests for the BlockchainService."""
 
-import hashlib
-import json
 from datetime import datetime
 
 from app.models import Qualification, QualificationStatus, QualificationType

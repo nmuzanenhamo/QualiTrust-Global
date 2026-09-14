@@ -6,13 +6,88 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import require_verifier
 from app.models import AuditAction, User, VerificationMethod
-from app.schemas.verification import VerificationRecordResponse, VerificationResultResponse
+from app.schemas.verification import (
+    DocumentVerificationResponse,
+    VerificationRecordResponse,
+    VerificationResultResponse,
+)
 from app.services.audit_service import AuditService
 from app.services.verification_service import VerificationService
 
 router = APIRouter()
 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".txt"}
+
+
+@router.post("/verify-document", response_model=DocumentVerificationResponse)
+def verify_by_document(
+    method: str = Form("ai_assisted"),
+    notes: str | None = Form(None),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_verifier),
+):
+    """Verify a certificate by uploading the document alone — no ID or serial number needed.
+
+    Designed for employers and institutions verifying certificates submitted by
+    candidates. The system:
+
+    1. Extracts key fields from the document (AI vision first, regex fallback)
+    2. Looks up the registered credential by the extracted serial/registration numbers
+    3. Runs full verification with document comparison against registered data
+
+    Outcomes:
+    - **found**: credential matched, full verification result returned
+    - **not_found**: numbers were read but no matching record exists — possible fraud
+    - **unable_to_verify**: no serial number could be extracted (check image quality)
+    """
+    import os
+
+    try:
+        verification_method = VerificationMethod(method)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid verification method. Use: {[m.value for m in VerificationMethod]}",
+        )
+
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File type not allowed. Accepted: {', '.join(sorted(ALLOWED_EXTENSIONS))}",
+        )
+
+    content = file.file.read(MAX_FILE_SIZE + 1)
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="File too large. Maximum size is 10 MB.",
+        )
+
+    result = VerificationService.verify_by_document(
+        db,
+        user=current_user,
+        method=verification_method,
+        notes=notes,
+        document_bytes=content,
+        document_filename=file.filename,
+    )
+
+    if result.get("status") != "unable_to_verify":
+        AuditService.log_action(
+            db,
+            user_id=current_user.id,
+            action=AuditAction.VERIFY,
+            entity_type="qualification",
+            entity_id=result.get("qualification_id"),
+            qualification_id=result.get("qualification_id"),
+            description=f"Document-only verification via {verification_method.value}: "
+            f"status={result.get('status')}, result={result.get('result')}",
+        )
+
+    return result
 
 
 @router.post(

@@ -76,3 +76,31 @@ class ExtractedCredentialData(BaseModel):
     holder_id_number: str | None = None
     raw_text: str | None = None
     confidence: dict | None = None
+    extraction_method: str | None = None
+
+
+class DocumentVerificationResponse(BaseModel):
+    """Schema for verify-by-document results (employer flow).
+
+    Covers three outcomes:
+    - found: credential matched in the database, full verification result included
+    - not_found: serial/registration numbers extracted but no matching record
+    - unable_to_verify: no serial/registration numbers could be extracted
+    """
+
+    status: str
+    is_authentic: bool
+    message: str
+    extracted_fields: dict | None = None
+    extraction_method: str | None = None
+    qualification_found: bool = False
+    qualification_id: int | None = None
+    result: str | None = None
+    method: str | None = None
+    verification_hash: str | None = None
+    ai_confidence_score: int | None = None
+    checks: dict | None = None
+    ai_analysis: dict | None = None
+    document_analysis: dict | None = None
+    qualification: dict | None = None
+    verified_at: datetime | None = None

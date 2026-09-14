@@ -24,7 +24,7 @@ from app.services.verification_service import VerificationService
 router = APIRouter()
 
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "uploads")
-ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
+ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".txt"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 
@@ -147,6 +147,7 @@ def extract_credential_data(
         holder_id_number=extracted.holder_id_number,
         raw_text=extracted.raw_text[:2000] if extracted.raw_text else None,
         confidence=extracted.confidence,
+        extraction_method=extracted.extraction_method,
     )
 
 

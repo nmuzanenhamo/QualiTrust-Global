@@ -316,6 +316,7 @@
                 <div class="verify-tabs">
                   <button class="verify-tab active" data-lookup="id" type="button">By ID</button>
                   <button class="verify-tab" data-lookup="serial" type="button">By Serial / Reg No.</button>
+                  <button class="verify-tab" data-lookup="document" type="button">By Document</button>
                 </div>
 
                 <!-- By ID mode -->
@@ -351,6 +352,14 @@
                   </div>
                 </div>
 
+                <!-- By Document mode -->
+                <div id="lookup-document" class="lookup-mode">
+                  <div class="verify-tip" style="margin-bottom:16px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    <span>Upload the certificate or transcript below — the system reads the document (AI first, OCR fallback), finds the serial number, and verifies it against registered records. No ID or serial number needed.</span>
+                  </div>
+                </div>
+
                 <!-- Found credential preview (shown after serial/reg lookup) -->
                 <div id="lookup-preview" class="lookup-preview hidden">
                   <div class="lookup-preview-head">
@@ -377,9 +386,9 @@
                   <textarea id="verify-notes" rows="3" placeholder="Context for this verification..."></textarea>
                 </div>
                 <div class="field">
-                  <label>Upload Document for AI Comparison <span class="optional">optional</span></label>
+                  <label id="verify-file-label">Upload Document for AI Comparison <span class="optional">optional</span></label>
                   <div id="verify-file-drop" class="file-drop">
-                    <input type="file" id="verify-document" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp" hidden />
+                    <input type="file" id="verify-document" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp,.txt" hidden />
                     <div class="file-drop-inner" id="verify-file-drop-inner">
                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
                       <span id="verify-file-drop-text">Upload certificate/transcript to compare</span>
@@ -532,7 +541,7 @@
         <div class="field full">
           <label>Upload Certificate / Transcript <span style="color:var(--accent-2);">— Step 1</span></label>
           <div id="file-drop" class="file-drop">
-            <input type="file" id="f-document" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp" hidden />
+            <input type="file" id="f-document" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp,.txt" hidden />
             <div class="file-drop-inner" id="file-drop-inner">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
               <span id="file-drop-text">Click to upload or drag a PDF / image</span>
@@ -721,6 +730,6 @@
   </div>
 
   <script src="/js/institutions.js?v=10"></script>
-  <script src="/js/app.js?v=10"></script>
+  <script src="/js/app.js?v=11"></script>
 </body>
 </html>

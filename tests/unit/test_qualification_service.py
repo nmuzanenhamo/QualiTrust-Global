@@ -1,8 +1,7 @@
 """Unit tests for the QualificationService."""
 
-import pytest
 
-from app.models import QualificationStatus, QualificationType
+from app.models import QualificationStatus
 from app.schemas.qualification import QualificationCreate, QualificationUpdate
 from app.services.qualification_service import QualificationService
 

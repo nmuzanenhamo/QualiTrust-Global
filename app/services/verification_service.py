@@ -38,6 +38,89 @@ class VerificationService:
         return query.first()
 
     @staticmethod
+    def verify_by_document(
+        db: Session,
+        user: User,
+        method: VerificationMethod = VerificationMethod.AI_ASSISTED,
+        notes: str | None = None,
+        document_bytes: bytes | None = None,
+        document_filename: str | None = None,
+    ) -> dict:
+        """Verify a credential from an uploaded document alone (employer flow).
+
+        Extracts fields from the document (AI vision first, regex fallback),
+        looks up the credential by the extracted serial/registration numbers,
+        then runs the full verification with document comparison.
+
+        Returns a dict matching DocumentVerificationResponse:
+        - status "found": full verification result included
+        - status "not_found": numbers extracted but no matching record — possible fraud
+        - status "unable_to_verify": no serial/registration numbers could be read
+        """
+        from app.services.credential_extraction_service import CredentialExtractionService
+
+        extracted = CredentialExtractionService.extract(document_bytes, document_filename or "")
+
+        extracted_fields = {
+            "holder_name": extracted.holder_name,
+            "issuing_institution": extracted.issuing_institution,
+            "title": extracted.title,
+            "qualification_type": extracted.qualification_type,
+            "grade": extracted.grade,
+            "serial_number": extracted.serial_number,
+            "registration_number": extracted.registration_number,
+            "date_issued": extracted.date_issued,
+            "holder_id_number": extracted.holder_id_number,
+        }
+
+        if not extracted.serial_number:
+            return {
+                "status": "unable_to_verify",
+                "is_authentic": False,
+                "message": "No serial number could be extracted from the document. "
+                "Check the image quality, or verify using the qualification ID or serial number.",
+                "extracted_fields": extracted_fields,
+                "extraction_method": extracted.extraction_method,
+                "qualification_found": False,
+            }
+
+        qualification = VerificationService.lookup_by_serial_registration(
+            db,
+            serial_number=extracted.serial_number,
+            registration_number=extracted.registration_number,
+        )
+
+        if not qualification:
+            return {
+                "status": "not_found",
+                "is_authentic": False,
+                "message": f"No registered credential found with serial number "
+                f"'{extracted.serial_number}'. This certificate may be fraudulent.",
+                "extracted_fields": extracted_fields,
+                "extraction_method": extracted.extraction_method,
+                "qualification_found": False,
+            }
+
+        result = VerificationService.verify_qualification(
+            db,
+            qualification_id=qualification.id,
+            user=user,
+            method=method,
+            notes=notes,
+            document_bytes=document_bytes,
+            document_filename=document_filename,
+        )
+        result.update(
+            {
+                "status": "found",
+                "qualification_found": True,
+                "extracted_fields": extracted_fields,
+                "extraction_method": extracted.extraction_method,
+            }
+        )
+        return result
+
+    @staticmethod
     def verify_qualification(
         db: Session,
         qualification_id: int,

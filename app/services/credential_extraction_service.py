@@ -40,6 +40,7 @@ class ExtractedCredential:
     holder_id_number: str | None = None
     raw_text: str = ""
     confidence: dict = field(default_factory=dict)
+    extraction_method: str = "regex"
 
 
 # ── OCR text normalization ───────────────────────────────────────
@@ -201,15 +202,18 @@ DATE_PATTERNS = [
 ]
 
 # ── Holder name patterns ────────────────────────────────────────
+# Names often end at a newline (name on its own line) or before a stop word
 HOLDER_PATTERNS = [
-    # "This is to certify that John Doe having..."
+    # "This is to certify that John Doe having..." / "This is to certify that\nJohn Doe\nhaving..."
     re.compile(
-        r"this\s+is\s+to\s+certify\s+that\s+(.{2,80}?)(?:\s+(?:having|was|has|is|being|successfully|completed|awarded))",
+        r"this\s+is\s+to\s+certify\s+that\s+(.{2,80}?)"
+        r"(?=\s+(?:having|was|has|is|being|successfully|completed|awarded)|\s*\n)",
         re.I,
     ),
     # "We hereby Certify that John Doe having..." (common on Zimbabwean certificates)
     re.compile(
-        r"we\s+hereby\s+certify\s+that\s+(.{2,80}?)(?:\s+(?:having|was|has|is|being|successfully|completed|awarded))",
+        r"we\s+hereby\s+certify\s+that\s+(.{2,80}?)"
+        r"(?=\s+(?:having|was|has|is|being|successfully|completed|awarded)|\s*\n)",
         re.I,
     ),
     # "We hereby Certify that\n<noise lines>\nJOHN DOE\nhaving..." (name on a later line, all caps)
@@ -223,13 +227,17 @@ HOLDER_PATTERNS = [
     # Allows OCR noise after the name (e.g. "JOHN DOE co EenrED ~~ oak")
     re.compile(r"\n([A-Z]{3,}\s+[A-Z]{3,}(?:\s+[A-Z]{3,}){1,4})\s+(?:co\s|~~|[a-z]|\n)"),
     # "awarded to John Doe having..."
-    re.compile(r"awarded\s+to\s+(.{2,80}?)(?:\s+(?:having|was|has|is|being|successfully|on|upon|for))", re.I),
+    re.compile(r"awarded\s+to\s+(.{2,80}?)(?=\s+(?:having|was|has|is|being|successfully|on|upon|for)|\s*\n)", re.I),
     # "Name: John Doe" / "Candidate: John Doe"
     re.compile(r"(?:name|candidate|holder|full\s*name)\s*[:\-]\s*([A-Z][a-zA-Z'\-\s]{2,60})", re.I),
     # "Mr. John Doe" / "Mrs. Jane Smith"
     re.compile(r"(?:Mr\.?|Mrs\.?|Ms\.?|Dr\.?)\s+([A-Z][a-zA-Z'\-\s]{2,60})"),
     # "This certifies that John Doe" (variant)
-    re.compile(r"certifies?\s+that\s+(.{2,80}?)(?:\s+(?:having|was|has|is|being|successfully|completed))", re.I),
+    re.compile(
+        r"certifies?\s+that\s+(.{2,80}?)"
+        r"(?=\s+(?:having|was|has|is|being|successfully|completed|awarded)|\s*\n)",
+        re.I,
+    ),
 ]
 
 # ── National ID patterns ────────────────────────────────────────
@@ -305,8 +313,20 @@ class CredentialExtractionService:
     def extract(file_bytes: bytes, filename: str) -> ExtractedCredential:
         """Extract structured credential data from an uploaded file.
 
-        Uses DocumentService for OCR, then parses the text.
+        Tries AI vision extraction first (GPT-4o-mini reads the document
+        directly, which is far more accurate than regex on OCR text).
+        Falls back to OCR + regex parsing when AI is unavailable (no API
+        key, out of credits, or the call fails).
         """
+        from app.core.config import settings
+
+        if settings.OPENAI_API_KEY:
+            from app.services.ai_extraction_service import AIExtractionService
+
+            ai_result = AIExtractionService.extract(file_bytes, filename)
+            if ai_result and (ai_result.serial_number or ai_result.holder_name or ai_result.title):
+                return ai_result
+
         from app.services.document_service import DocumentService
 
         raw_text = DocumentService.extract_text(file_bytes, filename)
@@ -350,9 +370,11 @@ class CredentialExtractionService:
                     # Clean up: remove trailing punctuation, collapse whitespace
                     name = re.sub(r"[,.;:].*$", "", name).strip()
                     name = re.sub(r"\s+", " ", name)
-                    # Remove common OCR noise words that get appended
+                    # Remove common OCR noise words that get appended.
+                    # \b ensures we only strip whole noise tokens — without it,
+                    # "PER" would match inside "Person" and truncate real names.
                     name = re.sub(
-                        r"\s+(?:OG|ERTIES|aela|Co|SNA|L|com|NAL|TRUE|RUE|PCT|TCR|ERR|PRR|RRR|Tey|Terr|PER|ERE|RSPR|REET|eee).*$",
+                        r"\s+(?:OG|ERTIES|aela|Co|SNA|L|com|NAL|TRUE|RUE|PCT|TCR|ERR|PRR|RRR|Tey|Terr|PER|ERE|RSPR|REET|eee)\b.*$",
                         "",
                         name,
                         flags=re.I,
@@ -523,13 +545,65 @@ class CredentialExtractionService:
 
     @staticmethod
     def _extract_date(normalized: str, raw: str) -> str | None:
-        """Extract date, trying normalized text first then raw."""
+        """Extract date, trying normalized text first then raw.
+
+        Dates are normalized to YYYY-MM-DD so the regex fallback matches
+        the AI extraction format and works with downstream date parsing.
+        """
         for text in [normalized, raw]:
             for pattern in DATE_PATTERNS:
                 m = pattern.search(text)
                 if m:
-                    return m.group(1).strip()
+                    return CredentialExtractionService._normalize_date_string(m.group(1).strip())
         return None
+
+    @staticmethod
+    def _normalize_date_string(date_str: str) -> str:
+        """Normalize a date string to YYYY-MM-DD where possible.
+
+        Handles:
+        - "15th June 2023" / "15 June 2023" -> "2023-06-15"
+        - "June 15, 2023" -> "2023-06-15"
+        - "15/06/2023" / "15-06-2023" -> "2023-06-15" (day-first, common in ZW/UK)
+        - "2023-06-15" -> unchanged
+        Returns the original string when parsing fails.
+        """
+        months = {
+            "january": 1,
+            "february": 2,
+            "march": 3,
+            "april": 4,
+            "may": 5,
+            "june": 6,
+            "july": 7,
+            "august": 8,
+            "september": 9,
+            "october": 10,
+            "november": 11,
+            "december": 12,
+        }
+
+        # ISO format — already normalized
+        m = re.match(r"^(\d{4})-(\d{2})-(\d{2})$", date_str)
+        if m:
+            return date_str
+
+        # "15th June 2023" / "15 June 2023"
+        m = re.match(r"^(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s+(\d{4})$", date_str)
+        if m and m.group(2).lower() in months:
+            return f"{m.group(3)}-{months[m.group(2).lower()]:02d}-{int(m.group(1)):02d}"
+
+        # "June 15, 2023" / "June 15 2023"
+        m = re.match(r"^([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})$", date_str)
+        if m and m.group(1).lower() in months:
+            return f"{m.group(3)}-{months[m.group(1).lower()]:02d}-{int(m.group(2)):02d}"
+
+        # "15/06/2023" / "15-06-2023" (day-first)
+        m = re.match(r"^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$", date_str)
+        if m:
+            return f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}"
+
+        return date_str
 
     @staticmethod
     def _extract_id(normalized: str, raw: str) -> str | None:

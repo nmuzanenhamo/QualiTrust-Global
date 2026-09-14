@@ -893,6 +893,14 @@ document.querySelectorAll('.verify-tab').forEach(tab => {
     verifyLookupMode = tab.dataset.lookup;
     document.getElementById(`lookup-${verifyLookupMode}`).classList.add('active');
     document.getElementById('lookup-preview').classList.add('hidden');
+
+    // In By Document mode the file upload is the lookup mechanism — make it required
+    const fileLabel = document.getElementById('verify-file-label');
+    if (verifyLookupMode === 'document') {
+      fileLabel.innerHTML = 'Upload Certificate / Transcript <span style="color:var(--red);font-weight:600;">required</span>';
+    } else {
+      fileLabel.innerHTML = 'Upload Document for AI Comparison <span class="optional">optional</span>';
+    }
   });
 });
 
@@ -900,6 +908,36 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
   const method = document.getElementById('verify-method').value;
   const notes = document.getElementById('verify-notes').value.trim();
   let qualId = document.getElementById('verify-id').value;
+
+  // ── By Document mode: upload-only verification (employer flow) ──
+  if (verifyLookupMode === 'document') {
+    if (!verifySelectedFile) { toast('Upload a certificate document first', 'error'); return; }
+
+    showLoading();
+    try {
+      const formData = new FormData();
+      formData.append('method', method);
+      if (notes) formData.append('notes', notes);
+      formData.append('file', verifySelectedFile);
+      const token = localStorage.getItem('token');
+      const resp = await fetch(`/api/v1/qualifications/verify-document`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.detail || resp.statusText);
+      }
+      const result = await resp.json();
+      hideLoading();
+      renderDocumentVerificationResult(result);
+    } catch (err) {
+      hideLoading();
+      toast(err.message, 'error');
+    }
+    return;
+  }
 
   if (verifyLookupMode === 'serial') {
     const serial = document.getElementById('verify-serial').value.trim();
@@ -1161,6 +1199,135 @@ function renderQualificationDetails(q) {
       </div>
     </div>
   `;
+}
+
+/* Render results for the By Document verification mode (employer flow) */
+function renderDocumentVerificationResult(result) {
+  document.getElementById('verify-empty').classList.add('hidden');
+  const resultEl = document.getElementById('verify-result');
+  resultEl.classList.remove('hidden');
+
+  const badge = document.getElementById('result-badge');
+  const detailsEl = document.getElementById('result-details');
+  const aiEl = document.getElementById('result-ai');
+  const docEl = document.getElementById('result-document');
+
+  // ── Badge ──
+  let badgeText, badgeClass, toastMsg, toastType;
+  if (result.status === 'found') {
+    const isPass = result.is_authentic && result.result !== 'rejected';
+    badgeClass = `result-badge ${isPass ? 'success' : 'fail'}`;
+    badgeText = isPass ? `✓ Authentic — ${escapeHtml(result.result)}` : `✕ Not Authentic — ${escapeHtml(result.result)}`;
+    toastMsg = isPass ? 'Verification passed!' : 'Verification failed';
+    toastType = isPass ? 'success' : 'error';
+  } else if (result.status === 'not_found') {
+    badgeClass = 'result-badge fail';
+    badgeText = '✕ No Matching Record Found';
+    toastMsg = 'No matching credential found in the system';
+    toastType = 'error';
+  } else {
+    badgeClass = 'result-badge';
+    badgeText = '⚠ Unable to Verify';
+    toastMsg = 'Could not extract a serial number from the document';
+    toastType = 'error';
+  }
+  badge.className = badgeClass;
+  badge.textContent = badgeText;
+
+  // ── Extracted fields section ──
+  const ef = result.extracted_fields || {};
+  const methodLabel = result.extraction_method === 'openai_vision' ? 'AI Vision (GPT-4o)' : 'OCR + Pattern Matching';
+  let html = `
+    <div style="margin-top:4px;">
+      <h4 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);margin-bottom:10px;">
+        Fields Read From Document <span style="text-transform:none;letter-spacing:0;font-weight:500;">(${escapeHtml(methodLabel)})</span>
+      </h4>
+      <div class="result-detail-row"><span class="result-detail-label">Candidate Name</span><span class="result-detail-value">${ef.holder_name ? escapeHtml(ef.holder_name) : '<span style="color:var(--text-3);">Not detected</span>'}</span></div>
+      <div class="result-detail-row"><span class="result-detail-label">Institution</span><span class="result-detail-value">${ef.issuing_institution ? escapeHtml(ef.issuing_institution) : '<span style="color:var(--text-3);">Not detected</span>'}</span></div>
+      <div class="result-detail-row"><span class="result-detail-label">Qualification / Programme</span><span class="result-detail-value">${ef.title ? escapeHtml(ef.title) : '<span style="color:var(--text-3);">Not detected</span>'}</span></div>
+      ${ef.grade ? `<div class="result-detail-row"><span class="result-detail-label">Grade / Class</span><span class="result-detail-value">${escapeHtml(ef.grade)}</span></div>` : ''}
+      <div class="result-detail-row"><span class="result-detail-label">Serial Number</span><span class="result-detail-value">${ef.serial_number ? escapeHtml(ef.serial_number) : '<span style="color:var(--red);">Not detected</span>'}</span></div>
+      ${ef.registration_number ? `<div class="result-detail-row"><span class="result-detail-label">Registration Number</span><span class="result-detail-value">${escapeHtml(ef.registration_number)}</span></div>` : ''}
+      ${ef.date_issued ? `<div class="result-detail-row"><span class="result-detail-label">Date Issued</span><span class="result-detail-value">${escapeHtml(ef.date_issued)}</span></div>` : ''}
+      ${ef.holder_id_number ? `<div class="result-detail-row"><span class="result-detail-label">Holder ID Number</span><span class="result-detail-value">${escapeHtml(ef.holder_id_number)}</span></div>` : ''}
+    </div>
+  `;
+
+  // ── Outcome message ──
+  html += `<div class="result-detail-row" style="margin-top:12px;"><span class="result-detail-label">Outcome</span><span class="result-detail-value">${escapeHtml(result.message)}</span></div>`;
+
+  // ── Full verification details (when found) ──
+  if (result.status === 'found') {
+    html += `
+      <div class="result-detail-row"><span class="result-detail-label">Qualification ID</span><span class="result-detail-value">#${result.qualification_id}</span></div>
+      <div class="result-detail-row"><span class="result-detail-label">Method</span><span class="result-detail-value">${escapeHtml(result.method)}</span></div>
+      <div class="result-detail-row"><span class="result-detail-label">Verification Hash</span><span class="result-detail-value hash-value">${result.verification_hash ? escapeHtml(result.verification_hash) : 'Not assigned'}</span></div>
+      <div class="result-detail-row"><span class="result-detail-label">AI Confidence</span><span class="result-detail-value">${result.ai_confidence_score != null ? result.ai_confidence_score + '%' : '—'}</span></div>
+      ${result.verified_at ? `<div class="result-detail-row"><span class="result-detail-label">Verified At</span><span class="result-detail-value">${new Date(result.verified_at).toLocaleString()}</span></div>` : ''}
+      ${result.checks ? renderChecks(result.checks) : ''}
+      ${result.qualification ? renderQualificationDetails(result.qualification) : ''}
+    `;
+  }
+
+  detailsEl.innerHTML = html;
+
+  // ── AI analysis (when found) ──
+  if (result.ai_analysis) {
+    const ai = result.ai_analysis;
+    let aiHtml = '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);"><h4 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);margin-bottom:10px;">AI Fraud Analysis</h4>';
+    if (ai.recommendation) {
+      const rec = ai.recommendation.toUpperCase();
+      const cls = rec.includes('APPROVE') ? 'approve' : rec.includes('REJECT') ? 'reject' : 'review';
+      const recColor = cls === 'approve' ? 'var(--green)' : cls === 'reject' ? 'var(--red)' : 'var(--amber)';
+      aiHtml += `<div class="result-detail-row"><span class="result-detail-label">Recommendation</span><span class="result-detail-value" style="color:${recColor};font-weight:600;">${escapeHtml(ai.recommendation)}</span></div>`;
+    }
+    if (ai.risk_score != null) aiHtml += `<div class="result-detail-row"><span class="result-detail-label">Risk Score</span><span class="result-detail-value">${ai.risk_score}/100</span></div>`;
+    if (ai.confidence_score != null) aiHtml += `<div class="result-detail-row"><span class="result-detail-label">Confidence</span><span class="result-detail-value">${ai.confidence_score}%</span></div>`;
+    if (ai.anomalies && ai.anomalies.length > 0) {
+      aiHtml += `<div class="result-detail-row"><span class="result-detail-label">Anomalies</span><span class="result-detail-value">${ai.anomalies.map(a => escapeHtml(a)).join('<br>')}</span></div>`;
+    } else {
+      aiHtml += `<div class="result-detail-row"><span class="result-detail-label">Anomalies</span><span class="result-detail-value" style="color:var(--green);">None detected</span></div>`;
+    }
+    aiHtml += '</div>';
+    aiEl.innerHTML = aiHtml;
+  } else {
+    aiEl.innerHTML = '';
+  }
+
+  // ── Document match analysis (when found) ──
+  if (result.document_analysis) {
+    const da = result.document_analysis;
+    let docHtml = '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);"><h4 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);margin-bottom:10px;">Document Match Analysis</h4>';
+    if (da.data_match) {
+      const dm = da.data_match;
+      const recColor = dm.recommendation === 'APPROVE' ? 'var(--green)' : dm.recommendation === 'REJECT' ? 'var(--red)' : 'var(--amber)';
+      docHtml += `<div class="result-detail-row"><span class="result-detail-label">Data Match Score</span><span class="result-detail-value" style="color:${recColor};font-weight:600;">${dm.match_score}% — ${escapeHtml(dm.recommendation)}</span></div>`;
+      docHtml += `<div class="result-detail-row"><span class="result-detail-label">Summary</span><span class="result-detail-value">${escapeHtml(dm.summary)}</span></div>`;
+      if (dm.checks && dm.checks.length > 0) {
+        docHtml += '<div style="margin-top:8px;">';
+        for (const c of dm.checks) {
+          const icon = c.found_in_document ? '<span class="check-pass">✓</span>' : '<span class="check-fail">✕</span>';
+          docHtml += `<div class="result-detail-row"><span class="result-detail-label">${escapeHtml(c.field)}</span><span class="result-detail-value">${icon} ${c.found_in_document ? 'Match' : 'Mismatch'} (registered: ${escapeHtml(c.registered)})</span></div>`;
+        }
+        docHtml += '</div>';
+      }
+    }
+    if (da.extracted_text_preview) {
+      docHtml += `<details style="margin-top:8px;"><summary style="cursor:pointer;font-size:12px;color:var(--text-3);font-weight:600;">Extracted Text Preview</summary><div style="margin-top:6px;padding:8px;background:var(--bg-2);border-radius:6px;font-size:11px;color:var(--text-3);white-space:pre-wrap;max-height:200px;overflow-y:auto;">${escapeHtml(da.extracted_text_preview)}</div></details>`;
+    }
+    docHtml += '</div>';
+    docEl.innerHTML = docHtml;
+  } else {
+    docEl.innerHTML = '';
+  }
+
+  toast(toastMsg, toastType);
+
+  if (result.status === 'found' && result.qualification_id) {
+    loadVerifyHistory(result.qualification_id);
+  } else {
+    document.getElementById('verify-history').classList.add('hidden');
+  }
 }
 
 /* ─────────── AI ANALYSIS ─────────── */

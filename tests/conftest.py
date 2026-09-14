@@ -8,7 +8,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.core.database import Base, get_db
 from app.main import app
-from app.models import User, UserRole
+from app.models import UserRole
 from app.services.auth_service import AuthService
 
 # Test database (in-memory SQLite)
