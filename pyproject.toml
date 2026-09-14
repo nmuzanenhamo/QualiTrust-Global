@@ -19,6 +19,7 @@ dependencies = [
     "prometheus-client>=0.19.0",
     "slowapi>=0.1.9",
     "openai>=1.6.0",
+    "cryptography>=42.0.0",
     "psycopg2-binary>=2.9.9",
     "python-dotenv>=1.0.0",
     "pdfplumber>=0.10.0",

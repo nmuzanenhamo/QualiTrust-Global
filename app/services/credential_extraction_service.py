@@ -310,22 +310,22 @@ class CredentialExtractionService:
     ]
 
     @staticmethod
-    def extract(file_bytes: bytes, filename: str) -> ExtractedCredential:
+    def extract(file_bytes: bytes, filename: str, db=None) -> ExtractedCredential:
         """Extract structured credential data from an uploaded file.
 
         Tries AI vision extraction first (GPT-4o-mini reads the document
         directly, which is far more accurate than regex on OCR text).
         Falls back to OCR + regex parsing when AI is unavailable (no API
         key, out of credits, or the call fails).
+
+        The OpenAI key is resolved from the DB (admin Settings page) when
+        ``db`` is provided, then from the ``OPENAI_API_KEY`` env var.
         """
-        from app.core.config import settings
+        from app.services.ai_extraction_service import AIExtractionService
 
-        if settings.OPENAI_API_KEY:
-            from app.services.ai_extraction_service import AIExtractionService
-
-            ai_result = AIExtractionService.extract(file_bytes, filename)
-            if ai_result and (ai_result.serial_number or ai_result.holder_name or ai_result.title):
-                return ai_result
+        ai_result = AIExtractionService.extract(file_bytes, filename, db=db)
+        if ai_result and (ai_result.serial_number or ai_result.holder_name or ai_result.title):
+            return ai_result
 
         from app.services.document_service import DocumentService
 

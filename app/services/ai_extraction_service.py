@@ -61,13 +61,17 @@ class AIExtractionService:
     """Extracts credential fields from documents using OpenAI vision models."""
 
     @staticmethod
-    def extract(file_bytes: bytes, filename: str) -> ExtractedCredential | None:
+    def extract(file_bytes: bytes, filename: str, db=None) -> ExtractedCredential | None:
         """Extract credential data using GPT-4o-mini vision.
 
         Returns an ExtractedCredential on success, or None when AI extraction
         is unavailable or fails (caller should fall back to regex extraction).
+
+        The OpenAI key is resolved in order: DB-stored (admin Settings page),
+        then the ``OPENAI_API_KEY`` environment variable.
         """
-        if not settings.OPENAI_API_KEY:
+        api_key = AIExtractionService._resolve_api_key(db)
+        if not api_key:
             return None
 
         try:
@@ -75,7 +79,7 @@ class AIExtractionService:
             if not images:
                 return None
 
-            result = AIExtractionService._call_vision_model(images)
+            result = AIExtractionService._call_vision_model(images, api_key)
             if result is None:
                 return None
 
@@ -83,6 +87,20 @@ class AIExtractionService:
         except Exception as e:
             logger.warning(f"AI vision extraction failed, falling back to regex: {e}")
             return None
+
+    @staticmethod
+    def _resolve_api_key(db=None) -> str | None:
+        """Resolve the OpenAI API key from the DB (admin settings) or env var."""
+        if db is not None:
+            try:
+                from app.services.settings_service import OPENAI_API_KEY, SettingsService
+
+                key = SettingsService.get_secret(db, OPENAI_API_KEY)
+                if key:
+                    return key
+            except Exception as e:
+                logger.warning(f"Failed to read OpenAI key from DB settings: {e}")
+        return settings.OPENAI_API_KEY or None
 
     @staticmethod
     def _document_to_images(file_bytes: bytes, filename: str) -> list[bytes]:
@@ -134,11 +152,11 @@ class AIExtractionService:
         return jpegs
 
     @staticmethod
-    def _call_vision_model(images: list[bytes]) -> dict | None:
+    def _call_vision_model(images: list[bytes], api_key: str) -> dict | None:
         """Send images to GPT-4o-mini and parse the JSON response."""
         from openai import OpenAI
 
-        client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        client = OpenAI(api_key=api_key)
 
         content: list[dict] = [{"type": "text", "text": EXTRACTION_PROMPT}]
         for jpeg_bytes in images:

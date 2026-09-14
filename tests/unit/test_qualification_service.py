@@ -1,6 +1,5 @@
 """Unit tests for the QualificationService."""
 
-
 from app.models import QualificationStatus
 from app.schemas.qualification import QualificationCreate, QualificationUpdate
 from app.services.qualification_service import QualificationService

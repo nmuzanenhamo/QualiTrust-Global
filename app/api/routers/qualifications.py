@@ -99,6 +99,7 @@ def lookup_credential(
 @router.post("/extract", response_model=ExtractedCredentialData)
 def extract_credential_data(
     file: UploadFile = File(...),
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Upload a certificate/transcript and extract qualification data via OCR.
@@ -133,7 +134,7 @@ def extract_credential_data(
             detail="File too large. Maximum size is 10 MB.",
         )
 
-    extracted = CredentialExtractionService.extract(content, file.filename or "")
+    extracted = CredentialExtractionService.extract(content, file.filename or "", db=db)
 
     return ExtractedCredentialData(
         holder_name=extracted.holder_name,

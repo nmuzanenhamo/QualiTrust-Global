@@ -1,7 +1,6 @@
 """Integration tests for authentication endpoints."""
 
 
-
 class TestAuthEndpoints:
     """Integration tests for auth API endpoints."""
 

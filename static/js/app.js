@@ -197,6 +197,7 @@ const pageTitles = {
   ai: 'AI Fraud Analysis',
   audit: 'Audit Trail',
   users: 'User Management',
+  settings: 'AI Integrations',
 };
 
 document.querySelectorAll('.nav-item').forEach(item => {
@@ -218,6 +219,7 @@ function navigateTo(page) {
   if (page === 'qualifications') loadQualifications();
   if (page === 'audit') loadAuditLogs();
   if (page === 'users') loadUsers();
+  if (page === 'settings') loadSettings();
   if (window.innerWidth <= 768) {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-backdrop').classList.remove('show');
@@ -1591,6 +1593,81 @@ function renderPagination(containerId, current, total, callback) {
       if (!btn.disabled) callback(parseInt(btn.dataset.pg));
     });
   });
+}
+
+/* ─────────── AI INTEGRATIONS (Admin) ─────────── */
+async function loadSettings() {
+  try {
+    const data = await api('/settings');
+    const warn = document.getElementById('settings-encryption-warning');
+    warn.classList.toggle('hidden', data.encryption_configured);
+
+    const container = document.getElementById('settings-list');
+    if (!data.settings || data.settings.length === 0) {
+      container.innerHTML = emptyState('', 'No settings', 'No AI integrations are configured.');
+      return;
+    }
+
+    container.innerHTML = data.settings.map(s => `
+      <div class="setting-row" data-key="${escapeHtml(s.key)}" style="border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:240px;">
+            <strong style="font-size:15px;">${escapeHtml(s.label)}</strong>
+            <p style="margin:4px 0 0; color:var(--text-muted); font-size:13px;">${escapeHtml(s.description)}</p>
+            <div style="margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <span class="badge badge-${s.source === 'database' ? 'green' : s.source === 'environment' ? 'blue' : 'gray'}" style="text-transform:capitalize; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600;">
+                ${s.source === 'database' ? 'Stored in DB' : s.source === 'environment' ? 'From env var' : 'Not set'}
+              </span>
+              ${s.masked_value ? `<code style="font-size:12px; color:var(--text-muted);">${escapeHtml(s.masked_value)}</code>` : ''}
+              ${s.updated_at ? `<span style="font-size:11px; color:var(--text-muted);">updated ${new Date(s.updated_at).toLocaleString()}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px; margin-bottom:0;">
+          <label>New value <span class="optional">leave empty to clear</span></label>
+          <div class="input-wrap">
+            <input type="password" class="setting-input" placeholder="Paste ${escapeHtml(s.label)} here…" autocomplete="off" />
+          </div>
+        </div>
+        <div style="margin-top:10px; display:flex; gap:8px;">
+          <button class="btn btn-primary btn-sm setting-save">Save</button>
+          <button class="btn btn-ghost btn-sm setting-clear">Clear</button>
+        </div>
+        <div class="setting-msg" style="margin-top:8px; font-size:13px;"></div>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.setting-row').forEach(row => {
+      const key = row.dataset.key;
+      const input = row.querySelector('.setting-input');
+      const msg = row.querySelector('.setting-msg');
+      row.querySelector('.setting-save').addEventListener('click', async () => {
+        msg.textContent = '';
+        try {
+          await api(`/settings/${encodeURIComponent(key)}`, { method: 'PUT', body: { value: input.value } });
+          toast(`${key} updated`, 'success');
+          loadSettings();
+        } catch (err) {
+          msg.style.color = 'var(--accent-red)';
+          msg.textContent = err.message;
+        }
+      });
+      row.querySelector('.setting-clear').addEventListener('click', async () => {
+        msg.textContent = '';
+        input.value = '';
+        try {
+          await api(`/settings/${encodeURIComponent(key)}`, { method: 'PUT', body: { value: '' } });
+          toast(`${key} cleared`, 'info');
+          loadSettings();
+        } catch (err) {
+          msg.style.color = 'var(--accent-red)';
+          msg.textContent = err.message;
+        }
+      });
+    });
+  } catch (err) {
+    document.getElementById('settings-list').innerHTML = `<div style="padding:20px; color:var(--accent-red);">${escapeHtml(err.message)}</div>`;
+  }
 }
 
 /* ─────────── EMPTY STATE HELPER ─────────── */

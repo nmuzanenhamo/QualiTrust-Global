@@ -153,6 +153,10 @@
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span>User Management</span>
         </a>
+        <a class="nav-item admin-only" data-page="settings" href="#" style="display:none;">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>AI Integrations</span>
+        </a>
       </nav>
 
       <div class="side-footer">
@@ -518,6 +522,30 @@
           </div>
         </section>
 
+        <!-- ─────────── PAGE: AI INTEGRATIONS (Admin) ─────────── -->
+        <section id="page-settings" class="page">
+          <div class="card">
+            <div class="card-head">
+              <h3>AI Integrations</h3>
+            </div>
+            <div class="card-body">
+              <div id="settings-encryption-warning" class="verify-tip hidden" style="margin-bottom:16px; border-color:var(--accent-amber); background:rgba(245,158,11,0.08);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                <span><strong>Encryption not configured.</strong> Set the <code>ENCRYPTION_KEY</code> environment variable on the server to enable storing API keys here. Until then, keys set via environment variables will still work.</span>
+              </div>
+
+              <div id="settings-list">
+                <div class="skeleton-table"></div>
+              </div>
+
+              <div class="verify-tip" style="margin-top:20px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <span>Keys are encrypted at rest (Fernet) and never returned in plaintext. Leave a field empty and save to clear the stored value — the matching environment variable (if set) will then take over. <strong>OpenAI</strong> powers vision extraction and fraud analysis. <strong>Anthropic</strong> is reserved for future use.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
       </main>
     </div>
   </div>
@@ -730,6 +758,6 @@
   </div>
 
   <script src="/js/institutions.js?v=10"></script>
-  <script src="/js/app.js?v=11"></script>
+  <script src="/js/app.js?v=12"></script>
 </body>
 </html>

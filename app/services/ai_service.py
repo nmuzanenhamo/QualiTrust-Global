@@ -7,6 +7,7 @@ heuristic analysis engine.
 """
 
 import json
+import logging
 from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
@@ -19,6 +20,8 @@ from app.models import (
     VerificationRecord,
     VerificationResult,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AIService:
@@ -76,12 +79,25 @@ class AIService:
         }
 
     @staticmethod
-    async def _openai_analysis(qualification: Qualification) -> dict:
+    def _resolve_api_key(db: Session) -> str | None:
+        """Resolve the OpenAI key from DB (admin settings) or env var."""
+        try:
+            from app.services.settings_service import OPENAI_API_KEY, SettingsService
+
+            key = SettingsService.get_secret(db, OPENAI_API_KEY)
+            if key:
+                return key
+        except Exception as e:
+            logger.warning(f"Failed to read OpenAI key from DB settings: {e}")
+        return settings.OPENAI_API_KEY or None
+
+    @staticmethod
+    async def _openai_analysis(qualification: Qualification, api_key: str) -> dict:
         """Use OpenAI API for credential analysis."""
         try:
             from openai import AsyncOpenAI
 
-            client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+            client = AsyncOpenAI(api_key=api_key)
 
             prompt = f"""
             Analyze the following qualification credential for potential fraud or anomalies:
@@ -137,8 +153,9 @@ class AIService:
         if not qualification:
             raise ValueError(f"Qualification with ID {qualification_id} not found")
 
-        if settings.OPENAI_API_KEY:
-            analysis = await AIService._openai_analysis(qualification)
+        api_key = AIService._resolve_api_key(db)
+        if api_key:
+            analysis = await AIService._openai_analysis(qualification, api_key)
         else:
             analysis = AIService._heuristic_analysis(qualification)
 

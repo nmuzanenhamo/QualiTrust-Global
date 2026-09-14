@@ -26,6 +26,13 @@ class Settings(BaseSettings):
     # OpenAI
     OPENAI_API_KEY: str = ""
 
+    # Anthropic (config-only for now; not yet wired into extraction/analysis)
+    ANTHROPIC_API_KEY: str = ""
+
+    # Fernet key used to encrypt API keys stored in the database.
+    # If unset, a warning is logged and DB-stored keys cannot be used.
+    ENCRYPTION_KEY: str = ""
+
     # CORS
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:8000"]
 

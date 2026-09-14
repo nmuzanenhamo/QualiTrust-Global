@@ -59,7 +59,7 @@ class VerificationService:
         """
         from app.services.credential_extraction_service import CredentialExtractionService
 
-        extracted = CredentialExtractionService.extract(document_bytes, document_filename or "")
+        extracted = CredentialExtractionService.extract(document_bytes, document_filename or "", db=db)
 
         extracted_fields = {
             "holder_name": extracted.holder_name,
