@@ -669,11 +669,41 @@ function resolveTitle() {
   return titleSelect.value.trim();
 }
 
-/* Set the institution field to an existing value (used when editing). */
+/* Fuzzy-match a value against dropdown options.
+ * Handles common extraction mismatches:
+ * - "Midlands State University" vs "Midlands State University (MSU)"
+ * - "Bachelor of Commerce Honours Degree in..." vs "Bachelor of Commerce Honours in..."
+ * Returns the matched option value, or null if no match. */
+function fuzzyMatchOption(selectEl, value) {
+  if (!value) return null;
+  const opts = Array.from(selectEl.options).filter(o => o.value && o.value !== OTHER_VALUE);
+  // Exact match
+  const exact = opts.find(o => o.value === value);
+  if (exact) return exact.value;
+  // Normalized comparison (lowercase, collapse spaces, strip punctuation)
+  const norm = s => s.toLowerCase().replace(/[().,]/g, '').replace(/\s+/g, ' ').trim();
+  const valNorm = norm(value);
+  // Exact normalized match
+  const normMatch = opts.find(o => norm(o.value) === valNorm);
+  if (normMatch) return normMatch.value;
+  // One is a substring of the other (e.g. "Midlands State University" in "Midlands State University (MSU)")
+  const substrMatch = opts.find(o => {
+    const on = norm(o.value);
+    return on.includes(valNorm) || valNorm.includes(on);
+  });
+  if (substrMatch) return substrMatch.value;
+  // Match ignoring the word "Degree" (certificates say "Honours Degree in", dropdowns say "Honours in")
+  const valNoDegree = valNorm.replace(/\bdegree\b/g, '').replace(/\s+/g, ' ').trim();
+  const degreeMatch = opts.find(o => norm(o.value).replace(/\bdegree\b/g, '').replace(/\s+/g, ' ').trim() === valNoDegree);
+  if (degreeMatch) return degreeMatch.value;
+  return null;
+}
+
+/* Set the institution field to an existing value (used when editing and auto-extraction). */
 function setInstitutionValue(value) {
-  const exists = Array.from(instSelect.options).some(o => o.value === value);
-  if (exists) {
-    instSelect.value = value;
+  const matched = fuzzyMatchOption(instSelect, value);
+  if (matched) {
+    instSelect.value = matched;
     instOther.classList.add('hidden');
     instOther.required = false;
     instOther.value = '';
@@ -691,11 +721,11 @@ function setInstitutionValue(value) {
   populateTitles(instSelect.value);
 }
 
-/* Set the qualification title field to an existing value (used when editing). */
+/* Set the qualification title field to an existing value (used when editing and auto-extraction). */
 function setTitleValue(value) {
-  const exists = Array.from(titleSelect.options).some(o => o.value === value);
-  if (exists) {
-    titleSelect.value = value;
+  const matched = fuzzyMatchOption(titleSelect, value);
+  if (matched) {
+    titleSelect.value = matched;
     titleOther.classList.add('hidden');
     titleOther.required = false;
     titleOther.value = '';
