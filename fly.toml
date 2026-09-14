@@ -29,13 +29,13 @@ primary_region = "ams"
 
 [[http_service.checks]]
   interval = "30s"
-  timeout = "5s"
-  grace_period = "10s"
+  timeout = "10s"
+  grace_period = "30s"
   method = "GET"
   path = "/health"
 
 [[vm]]
-  memory = "512"
+  memory = "1024"
   cpu_kind = "shared"
   cpus = 1
 

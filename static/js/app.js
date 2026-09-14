@@ -458,14 +458,18 @@ extractBtn.addEventListener('click', async () => {
   try {
     const formData = new FormData();
     formData.append('file', selectedFile);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
     const resp = await fetch(`${API}/qualifications/extract`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData,
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
-      throw new Error(err.detail || resp.statusText);
+      throw new Error(err.detail || resp.statusText || `Server error (${resp.status})`);
     }
     const data = await resp.json();
 
@@ -530,8 +534,9 @@ extractBtn.addEventListener('click', async () => {
   } catch (err) {
     extractStatus.classList.remove('info', 'success');
     extractStatus.classList.add('error');
-    extractStatus.innerHTML = `<div class="extract-summary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg> ${escapeHtml(err.message)}</div>`;
-    toast(err.message, 'error');
+    const msg = err.message || 'Failed to read document. The server may be busy or out of memory — try a smaller file or a .txt version.';
+    extractStatus.innerHTML = `<div class="extract-summary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg> ${escapeHtml(msg)}</div>`;
+    toast(msg, 'error');
   } finally {
     extractBtn.disabled = false;
     extractBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg> Read Document & Auto-Fill';
